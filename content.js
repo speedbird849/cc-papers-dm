@@ -1,6 +1,8 @@
-// Content script for paper viewer
 (() => {
   'use strict';
-  console.log('[PaperShade] Loaded on papers.codechefvit.com');
-  document.documentElement.setAttribute('data-papershade-enabled', 'true');
+  function applyInversion() {
+    document.documentElement.setAttribute('data-papershade-enabled', 'true');
+    document.documentElement.classList.add('papershade-active');
+  }
+  applyInversion();
 })();

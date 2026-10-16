@@ -1,6 +1,12 @@
-/* Initial paper inverter styles */
-[data-pdf-viewer-theme] img,
-[data-pdf-viewer-theme] canvas {
+/* High specificity overrides against Next.js styled-jsx forced light mode */
+html[data-papershade-enabled="true"] [data-pdf-viewer-theme] img,
+html[data-papershade-enabled="true"] [data-pdf-viewer-theme="light"] img,
+html[data-papershade-enabled="true"] [data-pdf-viewer-theme] canvas,
+html[data-papershade-enabled="true"] [data-pdf-viewer-theme="light"] canvas,
+html[data-papershade-enabled="true"] [data-pdf-viewer-theme="light"] svg,
+html[data-papershade-enabled="true"] div[style*="width"][style*="height"] > img {
   filter: invert(1) hue-rotate(180deg) !important;
   -webkit-filter: invert(1) hue-rotate(180deg) !important;
+  transition: filter 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 4px;
 }
