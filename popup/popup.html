@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PaperShade</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <header class="header">
+      <div class="brand">
+        <h1>PaperShade</h1>
+        <span class="subtitle">CodeChef VIT Papers</span>
+      </div>
+      <div class="status-indicator">
+        <span id="statusDot" class="status-dot"></span>
+        <span id="statusText" class="status-text">Active</span>
+      </div>
+    </header>
+
+    <div class="card toggle-card">
+      <div class="toggle-info">
+        <span class="card-title">Invert Paper Colors</span>
+        <span class="card-desc">Dark mode for exam papers</span>
+      </div>
+      <label class="switch" for="enabledToggle">
+        <input type="checkbox" id="enabledToggle" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
