@@ -1,8 +1,16 @@
 (() => {
   'use strict';
-  function applyInversion() {
-    document.documentElement.setAttribute('data-papershade-enabled', 'true');
-    document.documentElement.classList.add('papershade-active');
+  let isEnabled = true;
+
+  function applySettings(enabled) {
+    isEnabled = enabled;
+    if (enabled) {
+      document.documentElement.setAttribute('data-papershade-enabled', 'true');
+      document.documentElement.classList.add('papershade-active');
+    } else {
+      document.documentElement.setAttribute('data-papershade-enabled', 'false');
+      document.documentElement.classList.remove('papershade-active');
+    }
     tagPaperImages();
   }
 
@@ -19,14 +27,25 @@
     });
   }
 
-  applyInversion();
+  async function init() {
+    try {
+      const data = await chrome.storage.local.get({ enabled: true });
+      applySettings(data.enabled);
+    } catch (e) {
+      applySettings(true);
+    }
+  }
 
-  const observer = new MutationObserver(() => {
-    tagPaperImages();
+  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (msg.action === 'UPDATE_SETTINGS') {
+      applySettings(msg.settings.enabled);
+      sendResponse({ success: true });
+    }
+    return true;
   });
 
-  observer.observe(document.documentElement, {
-    childList: true,
-    subtree: true
-  });
+  init();
+
+  const observer = new MutationObserver(() => tagPaperImages());
+  observer.observe(document.documentElement, { childList: true, subtree: true });
 })();
