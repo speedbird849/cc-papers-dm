@@ -1,8 +1,11 @@
 {
   "manifest_version": 3,
   "name": "PaperShade - CodeChef VIT Papers Dark Mode",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Invert question papers into dark mode on papers.codechefvit.com",
+  "action": {
+    "default_popup": "popup/popup.html"
+  },
   "permissions": [
     "storage"
   ],
@@ -10,6 +13,9 @@
     "*://papers.codechefvit.com/*",
     "*://www.papers.codechefvit.com/*"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": [
@@ -24,5 +30,14 @@
       ],
       "run_at": "document_start"
     }
-  ]
+  ],
+  "commands": {
+    "toggle-invert": {
+      "suggested_key": {
+        "default": "Alt+I",
+        "mac": "Alt+I"
+      },
+      "description": "Toggle paper color inversion"
+    }
+  }
 }
