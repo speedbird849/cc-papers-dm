@@ -1,12 +1,44 @@
-/* High specificity overrides against Next.js styled-jsx forced light mode */
-html[data-papershade-enabled="true"] [data-pdf-viewer-theme] img,
-html[data-papershade-enabled="true"] [data-pdf-viewer-theme="light"] img,
-html[data-papershade-enabled="true"] [data-pdf-viewer-theme] canvas,
-html[data-papershade-enabled="true"] [data-pdf-viewer-theme="light"] canvas,
-html[data-papershade-enabled="true"] [data-pdf-viewer-theme="light"] svg,
-html[data-papershade-enabled="true"] div[style*="width"][style*="height"] > img {
-  filter: invert(1) hue-rotate(180deg) !important;
-  -webkit-filter: invert(1) hue-rotate(180deg) !important;
+:root {
+  --papershade-contrast: 0.95;
+  --papershade-brightness: 1;
+}
+
+/* SMART DARK MODE */
+html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] [data-pdf-viewer-theme] img,
+html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] [data-pdf-viewer-theme="light"] img,
+html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] [data-pdf-viewer-theme] canvas,
+html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] [data-pdf-viewer-theme="light"] canvas,
+html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] [data-pdf-viewer-theme="light"] svg,
+html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] div[style*="width"][style*="height"] > img,
+html.papershade-active[data-papershade-mode="smart-dark"] .papershade-target-img {
+  filter: invert(1) hue-rotate(180deg) contrast(var(--papershade-contrast, 0.95)) brightness(var(--papershade-brightness, 1)) !important;
+  -webkit-filter: invert(1) hue-rotate(180deg) contrast(var(--papershade-contrast, 0.95)) brightness(var(--papershade-brightness, 1)) !important;
+  transition: filter 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 4px;
+}
+
+/* PURE INVERT MODE */
+html[data-papershade-enabled="true"][data-papershade-mode="pure-invert"] [data-pdf-viewer-theme] img,
+html[data-papershade-enabled="true"][data-papershade-mode="pure-invert"] [data-pdf-viewer-theme="light"] img,
+html[data-papershade-enabled="true"][data-papershade-mode="pure-invert"] [data-pdf-viewer-theme] canvas,
+html[data-papershade-enabled="true"][data-papershade-mode="pure-invert"] [data-pdf-viewer-theme="light"] canvas,
+html[data-papershade-enabled="true"][data-papershade-mode="pure-invert"] div[style*="width"][style*="height"] > img,
+html.papershade-active[data-papershade-mode="pure-invert"] .papershade-target-img {
+  filter: invert(1) contrast(var(--papershade-contrast, 1)) brightness(var(--papershade-brightness, 1)) !important;
+  -webkit-filter: invert(1) contrast(var(--papershade-contrast, 1)) brightness(var(--papershade-brightness, 1)) !important;
+  transition: filter 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 4px;
+}
+
+/* SEPIA / WARM DARK MODE */
+html[data-papershade-enabled="true"][data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme] img,
+html[data-papershade-enabled="true"][data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme="light"] img,
+html[data-papershade-enabled="true"][data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme] canvas,
+html[data-papershade-enabled="true"][data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme="light"] canvas,
+html[data-papershade-enabled="true"][data-papershade-mode="sepia-dark"] div[style*="width"][style*="height"] > img,
+html.papershade-active[data-papershade-mode="sepia-dark"] .papershade-target-img {
+  filter: invert(1) hue-rotate(180deg) sepia(0.35) contrast(var(--papershade-contrast, 0.92)) brightness(var(--papershade-brightness, 0.95)) !important;
+  -webkit-filter: invert(1) hue-rotate(180deg) sepia(0.35) contrast(var(--papershade-contrast, 0.92)) brightness(var(--papershade-brightness, 0.95)) !important;
   transition: filter 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 4px;
 }
