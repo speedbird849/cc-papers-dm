@@ -42,3 +42,15 @@ html.papershade-active[data-papershade-mode="sepia-dark"] .papershade-target-img
   transition: filter 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 4px;
 }
+
+/* Print Styles: Never invert when printing */
+@media print {
+  [data-pdf-viewer-theme] img,
+  [data-pdf-viewer-theme] canvas,
+  [data-pdf-viewer-theme="light"] img,
+  [data-pdf-viewer-theme="light"] canvas,
+  div[style*="width"][style*="height"] > img {
+    filter: none !important;
+    -webkit-filter: none !important;
+  }
+}
