@@ -8,6 +8,7 @@
 </head>
 <body>
   <div class="popup-container">
+    <!-- Header -->
     <header class="header">
       <div class="brand">
         <div class="logo-box">
@@ -28,10 +29,11 @@
       </div>
     </header>
 
+    <!-- Main Toggle Card -->
     <div class="card toggle-card">
       <div class="toggle-info">
         <span class="card-title">Invert Paper Colors</span>
-        <span class="card-desc">Dark mode for exam papers</span>
+        <span class="card-desc">True #000 black exam papers</span>
       </div>
       <label class="switch" for="enabledToggle">
         <input type="checkbox" id="enabledToggle" checked>
@@ -39,13 +41,14 @@
       </label>
     </div>
 
+    <!-- Mode Selector -->
     <div class="section">
       <label class="section-label">Reading Mode</label>
       <div class="mode-grid">
         <button class="mode-btn active" data-mode="smart-dark">
           <span class="mode-icon">🌙</span>
-          <span class="mode-name">Smart Dark</span>
-          <span class="mode-hint">Keeps diagram hues</span>
+          <span class="mode-name">True Black</span>
+          <span class="mode-hint">Deep #000 + hue restore</span>
         </button>
         <button class="mode-btn" data-mode="pure-invert">
           <span class="mode-icon">⚡</span>
@@ -60,22 +63,30 @@
       </div>
     </div>
 
+    <!-- Adjustments -->
     <div class="section">
       <div class="section-header-flex">
         <label class="section-label">Fine Adjustments</label>
-        <button id="resetAdjustments" class="reset-link" title="Reset contrast & brightness">Reset</button>
+        <button id="resetAdjustments" class="reset-link" title="Reset all adjustments to defaults">Reset</button>
       </div>
       <div class="card adjustment-card">
         <div class="slider-row">
           <div class="slider-label-row">
-            <span>Contrast</span>
-            <span id="contrastVal" class="val-badge">95%</span>
+            <span>Black Depth (Scan Clean)</span>
+            <span id="blackDepthVal" class="val-badge">100%</span>
           </div>
-          <input type="range" id="contrastSlider" min="70" max="130" value="95" class="range-slider">
+          <input type="range" id="blackDepthSlider" min="50" max="150" value="100" class="range-slider">
         </div>
         <div class="slider-row">
           <div class="slider-label-row">
-            <span>Brightness</span>
+            <span>Text Contrast</span>
+            <span id="contrastVal" class="val-badge">100%</span>
+          </div>
+          <input type="range" id="contrastSlider" min="70" max="130" value="100" class="range-slider">
+        </div>
+        <div class="slider-row">
+          <div class="slider-label-row">
+            <span>Text Brightness</span>
             <span id="brightnessVal" class="val-badge">100%</span>
           </div>
           <input type="range" id="brightnessSlider" min="70" max="130" value="100" class="range-slider">
@@ -83,6 +94,7 @@
       </div>
     </div>
 
+    <!-- Quick Options -->
     <div class="section">
       <label class="checkbox-row" for="floatingBtnToggle">
         <input type="checkbox" id="floatingBtnToggle" checked>
@@ -91,16 +103,19 @@
       </label>
     </div>
 
+    <!-- Shortcut Hint -->
     <div class="shortcut-box">
       <span class="shortcut-text">Quick toggle with</span>
       <kbd class="kbd-key">Alt</kbd> + <kbd class="kbd-key">I</kbd>
     </div>
 
+    <!-- Footer -->
     <footer class="footer">
-      <span class="version">v1.0.0</span>
+      <span class="version">v1.1.0</span>
       <a href="https://papers.codechefvit.com" target="_blank" class="footer-link">papers.codechefvit.com ↗</a>
     </footer>
   </div>
+
   <script src="popup.js"></script>
 </body>
 </html>

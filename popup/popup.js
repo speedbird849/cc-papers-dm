@@ -1,16 +1,24 @@
+/**
+ * PaperShade Popup Script
+ */
+
 document.addEventListener('DOMContentLoaded', async () => {
   const DEFAULT_SETTINGS = {
     enabled: true,
     mode: 'smart-dark',
-    contrast: 95,
+    blackDepth: 100,
+    contrast: 100,
     brightness: 100,
     showFloatingButton: true
   };
 
+  // DOM Elements
   const enabledToggle = document.getElementById('enabledToggle');
   const statusDot = document.getElementById('statusDot');
   const statusText = document.getElementById('statusText');
   const modeButtons = document.querySelectorAll('.mode-btn');
+  const blackDepthSlider = document.getElementById('blackDepthSlider');
+  const blackDepthVal = document.getElementById('blackDepthVal');
   const contrastSlider = document.getElementById('contrastSlider');
   const contrastVal = document.getElementById('contrastVal');
   const brightnessSlider = document.getElementById('brightnessSlider');
@@ -18,6 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const resetAdjustments = document.getElementById('resetAdjustments');
   const floatingBtnToggle = document.getElementById('floatingBtnToggle');
 
+  // Load Settings
   let settings = { ...DEFAULT_SETTINGS };
   try {
     const saved = await chrome.storage.local.get(DEFAULT_SETTINGS);
@@ -26,6 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error('Failed to load settings:', err);
   }
 
+  // Update UI Elements
   function renderUI() {
     enabledToggle.checked = settings.enabled;
 
@@ -48,24 +58,31 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
 
-    contrastSlider.value = settings.contrast;
-    contrastVal.textContent = `${settings.contrast}%`;
+    const depth = typeof settings.blackDepth === 'number' ? settings.blackDepth : 100;
+    blackDepthSlider.value = depth;
+    blackDepthVal.textContent = `${depth}%`;
 
-    brightnessSlider.value = settings.brightness;
-    brightnessVal.textContent = `${settings.brightness}%`;
+    contrastSlider.value = settings.contrast || 100;
+    contrastVal.textContent = `${settings.contrast || 100}%`;
 
-    floatingBtnToggle.checked = settings.showFloatingButton;
+    brightnessSlider.value = settings.brightness || 100;
+    brightnessVal.textContent = `${settings.brightness || 100}%`;
+
+    floatingBtnToggle.checked = settings.showFloatingButton !== false;
   }
 
+  // Save Settings & Broadcast to Active Tab
   async function saveAndBroadcast() {
     try {
       await chrome.storage.local.set(settings);
 
+      // Broadcast to background service worker for badge
       chrome.runtime.sendMessage({
         action: 'STATE_CHANGED',
         enabled: settings.enabled
       });
 
+      // Broadcast to active tab
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (tab?.id) {
         try {
@@ -73,13 +90,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             action: 'UPDATE_SETTINGS',
             settings
           });
-        } catch {}
+        } catch {
+          // Tab might not have content script loaded
+        }
       }
     } catch (err) {
       console.error('Save error:', err);
     }
   }
 
+  // Event Listeners
   enabledToggle.addEventListener('change', () => {
     settings.enabled = enabledToggle.checked;
     renderUI();
@@ -92,6 +112,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       renderUI();
       saveAndBroadcast();
     });
+  });
+
+  blackDepthSlider.addEventListener('input', () => {
+    settings.blackDepth = parseInt(blackDepthSlider.value, 10);
+    blackDepthVal.textContent = `${settings.blackDepth}%`;
+    saveAndBroadcast();
   });
 
   contrastSlider.addEventListener('input', () => {
@@ -107,6 +133,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   resetAdjustments.addEventListener('click', () => {
+    settings.blackDepth = DEFAULT_SETTINGS.blackDepth;
     settings.contrast = DEFAULT_SETTINGS.contrast;
     settings.brightness = DEFAULT_SETTINGS.brightness;
     renderUI();
@@ -118,5 +145,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     saveAndBroadcast();
   });
 
+  // Initial Render
   renderUI();
 });

@@ -1,61 +1,97 @@
+/* Base CSS Variables for fine-tuning */
 :root {
-  --papershade-contrast: 0.95;
+  --papershade-scan-boost: 1.6;
+  --papershade-scan-contrast: 1.35;
+  --papershade-contrast: 1;
   --papershade-brightness: 1;
 }
 
-/* SMART DARK MODE */
+/* SMART DARK MODE (True Black + Hue Preservation) */
+/* Eliminates dirty photocopy / scan gray backgrounds to pitch black #000000 while preserving diagrams */
 html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] [data-pdf-viewer-theme] img,
 html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] [data-pdf-viewer-theme="light"] img,
 html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] [data-pdf-viewer-theme] canvas,
 html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] [data-pdf-viewer-theme="light"] canvas,
 html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] [data-pdf-viewer-theme="light"] svg,
 html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] div[style*="width"][style*="height"] > img,
+html.papershade-active[data-papershade-mode="smart-dark"] [data-pdf-viewer-theme] img,
+html.papershade-active[data-papershade-mode="smart-dark"] [data-pdf-viewer-theme] canvas,
 html.papershade-active[data-papershade-mode="smart-dark"] .papershade-target-img {
-  filter: invert(1) hue-rotate(180deg) contrast(var(--papershade-contrast, 0.95)) brightness(var(--papershade-brightness, 1)) !important;
-  -webkit-filter: invert(1) hue-rotate(180deg) contrast(var(--papershade-contrast, 0.95)) brightness(var(--papershade-brightness, 1)) !important;
+  filter: brightness(var(--papershade-scan-boost, 1.6)) 
+          contrast(var(--papershade-scan-contrast, 1.35)) 
+          invert(1) 
+          hue-rotate(180deg) 
+          contrast(var(--papershade-contrast, 1)) 
+          brightness(var(--papershade-brightness, 1)) !important;
+  -webkit-filter: brightness(var(--papershade-scan-boost, 1.6)) 
+                  contrast(var(--papershade-scan-contrast, 1.35)) 
+                  invert(1) 
+                  hue-rotate(180deg) 
+                  contrast(var(--papershade-contrast, 1)) 
+                  brightness(var(--papershade-brightness, 1)) !important;
   transition: filter 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 4px;
+  box-shadow: 0 4px 28px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
 }
 
-/* PURE INVERT MODE */
+/* PURE INVERT MODE (True Black) */
 html[data-papershade-enabled="true"][data-papershade-mode="pure-invert"] [data-pdf-viewer-theme] img,
 html[data-papershade-enabled="true"][data-papershade-mode="pure-invert"] [data-pdf-viewer-theme="light"] img,
 html[data-papershade-enabled="true"][data-papershade-mode="pure-invert"] [data-pdf-viewer-theme] canvas,
 html[data-papershade-enabled="true"][data-papershade-mode="pure-invert"] [data-pdf-viewer-theme="light"] canvas,
 html[data-papershade-enabled="true"][data-papershade-mode="pure-invert"] div[style*="width"][style*="height"] > img,
+html.papershade-active[data-papershade-mode="pure-invert"] [data-pdf-viewer-theme] img,
+html.papershade-active[data-papershade-mode="pure-invert"] [data-pdf-viewer-theme] canvas,
 html.papershade-active[data-papershade-mode="pure-invert"] .papershade-target-img {
-  filter: invert(1) contrast(var(--papershade-contrast, 1)) brightness(var(--papershade-brightness, 1)) !important;
-  -webkit-filter: invert(1) contrast(var(--papershade-contrast, 1)) brightness(var(--papershade-brightness, 1)) !important;
+  filter: brightness(var(--papershade-scan-boost, 1.6)) 
+          contrast(var(--papershade-scan-contrast, 1.35)) 
+          invert(1) 
+          contrast(var(--papershade-contrast, 1)) 
+          brightness(var(--papershade-brightness, 1)) !important;
+  -webkit-filter: brightness(var(--papershade-scan-boost, 1.6)) 
+                  contrast(var(--papershade-scan-contrast, 1.35)) 
+                  invert(1) 
+                  contrast(var(--papershade-contrast, 1)) 
+                  brightness(var(--papershade-brightness, 1)) !important;
   transition: filter 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 4px;
+  box-shadow: 0 4px 28px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
 }
 
-/* SEPIA / WARM DARK MODE */
+/* SEPIA / WARM DARK MODE (True Black + Amber Ink) */
 html[data-papershade-enabled="true"][data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme] img,
 html[data-papershade-enabled="true"][data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme="light"] img,
 html[data-papershade-enabled="true"][data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme] canvas,
 html[data-papershade-enabled="true"][data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme="light"] canvas,
 html[data-papershade-enabled="true"][data-papershade-mode="sepia-dark"] div[style*="width"][style*="height"] > img,
+html.papershade-active[data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme] img,
+html.papershade-active[data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme] canvas,
 html.papershade-active[data-papershade-mode="sepia-dark"] .papershade-target-img {
-  filter: invert(1) hue-rotate(180deg) sepia(0.35) contrast(var(--papershade-contrast, 0.92)) brightness(var(--papershade-brightness, 0.95)) !important;
-  -webkit-filter: invert(1) hue-rotate(180deg) sepia(0.35) contrast(var(--papershade-contrast, 0.92)) brightness(var(--papershade-brightness, 0.95)) !important;
+  filter: brightness(var(--papershade-scan-boost, 1.6)) 
+          contrast(var(--papershade-scan-contrast, 1.35)) 
+          invert(1) 
+          hue-rotate(180deg) 
+          sepia(0.35) 
+          contrast(var(--papershade-contrast, 1)) 
+          brightness(var(--papershade-brightness, 1)) !important;
+  -webkit-filter: brightness(var(--papershade-scan-boost, 1.6)) 
+                  contrast(var(--papershade-scan-contrast, 1.35)) 
+                  invert(1) 
+                  hue-rotate(180deg) 
+                  sepia(0.35) 
+                  contrast(var(--papershade-contrast, 1)) 
+                  brightness(var(--papershade-brightness, 1)) !important;
   transition: filter 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 4px;
+  box-shadow: 0 4px 28px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
 }
 
-/* Print Styles: Never invert when printing */
-@media print {
-  [data-pdf-viewer-theme] img,
-  [data-pdf-viewer-theme] canvas,
-  [data-pdf-viewer-theme="light"] img,
-  [data-pdf-viewer-theme="light"] canvas,
-  div[style*="width"][style*="height"] > img {
-    filter: none !important;
-    -webkit-filter: none !important;
-  }
+/* Ensure paper viewer background blends harmoniously with dark pages */
+html[data-papershade-enabled="true"] [data-pdf-viewer-theme] {
+  background-color: #070114 !important;
 }
 
-/* Floating on-page toggle button */
+/* Floating on-page quick toggle button */
 .papershade-floating-btn {
   position: fixed;
   bottom: 24px;
@@ -76,17 +112,30 @@ html.papershade-active[data-papershade-mode="sepia-dark"] .papershade-target-img
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
+  user-select: none;
 }
+
 .papershade-floating-btn:hover {
   transform: scale(1.08);
   border-color: rgba(138, 92, 246, 0.8);
   background: rgba(38, 30, 68, 0.95);
   box-shadow: 0 6px 24px rgba(138, 92, 246, 0.4);
 }
+
+.papershade-floating-btn:active {
+  transform: scale(0.95);
+}
+
 .papershade-floating-btn.active {
   background: rgba(99, 102, 241, 0.3);
   border-color: #a855f7;
   color: #c084fc;
+}
+
+.papershade-floating-btn svg {
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
 }
 
 /* HUD Toast Notification */
@@ -101,19 +150,44 @@ html.papershade-active[data-papershade-mode="sepia-dark"] .papershade-target-img
   color: #f1f5f9;
   border: 1px solid rgba(139, 92, 246, 0.3);
   border-radius: 10px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 13px;
   font-weight: 500;
+  letter-spacing: 0.2px;
   z-index: 100000;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55), 0 0 20px rgba(139, 92, 246, 0.15);
   opacity: 0;
   transform: translateY(14px) scale(0.97);
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
   display: flex;
   align-items: center;
   gap: 10px;
 }
+
 .papershade-toast.papershade-toast-visible {
   opacity: 1;
   transform: translateY(0) scale(1);
+}
+
+.papershade-toast-icon {
+  display: inline-flex;
+  font-size: 16px;
+}
+
+/* Print Styles: Never invert when printing */
+@media print {
+  [data-pdf-viewer-theme] img,
+  [data-pdf-viewer-theme] canvas,
+  [data-pdf-viewer-theme="light"] img,
+  [data-pdf-viewer-theme="light"] canvas,
+  div[style*="width"][style*="height"] > img {
+    filter: none !important;
+    -webkit-filter: none !important;
+    box-shadow: none !important;
+  }
+  .papershade-floating-btn,
+  .papershade-toast {
+    display: none !important;
+  }
 }

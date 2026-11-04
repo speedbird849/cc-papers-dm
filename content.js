@@ -1,11 +1,18 @@
+/**
+ * PaperShade Content Script
+ * Inverts question papers into dark mode on papers.codechefvit.com
+ * with True Black deep contrast engine.
+ */
+
 (() => {
   'use strict';
 
   const DEFAULT_SETTINGS = {
     enabled: true,
-    mode: 'smart-dark',
-    contrast: 95,
-    brightness: 100,
+    mode: 'smart-dark',       // 'smart-dark' | 'pure-invert' | 'sepia-dark'
+    blackDepth: 100,          // 50% to 150%, controls scan pre-boost to crush dirty paper to pure black
+    contrast: 100,            // 70% to 130%
+    brightness: 100,          // 70% to 130%
     showFloatingButton: true
   };
 
@@ -13,6 +20,7 @@
   let floatingBtn = null;
   let toastTimeout = null;
 
+  // Apply settings to document root immediately
   function applySettingsToDOM(settings) {
     const root = document.documentElement;
     if (!root) return;
@@ -26,13 +34,28 @@
     }
 
     root.setAttribute('data-papershade-mode', settings.mode || 'smart-dark');
-    root.style.setProperty('--papershade-contrast', (settings.contrast / 100).toString());
-    root.style.setProperty('--papershade-brightness', (settings.brightness / 100).toString());
 
+    // True Black engine:
+    // Scanned papers have dirty off-white / gray paper backgrounds (around 65%-75% brightness).
+    // Boosting brightness & contrast pre-inversion lifts the paper to pure 100% white,
+    // so upon inversion it renders as pure pitch #000000 black, not murky gray.
+    const depth = typeof settings.blackDepth === 'number' ? settings.blackDepth : 100;
+    const scanBoost = 1.6 * (depth / 100);
+    const scanContrast = 1.35;
+
+    root.style.setProperty('--papershade-scan-boost', scanBoost.toFixed(3));
+    root.style.setProperty('--papershade-scan-contrast', scanContrast.toString());
+    root.style.setProperty('--papershade-contrast', ((settings.contrast || 100) / 100).toString());
+    root.style.setProperty('--papershade-brightness', ((settings.brightness || 100) / 100).toString());
+
+    // Update floating button appearance if present
     updateFloatingButtonState();
+
+    // Mark target images/canvases directly for instant response
     tagPaperImages();
   }
 
+  // Tag images rendered inside the PDF viewer
   function tagPaperImages() {
     requestAnimationFrame(() => {
       const viewerImages = document.querySelectorAll(
@@ -46,8 +69,11 @@
     });
   }
 
+  // Floating Quick Toggle Button
   function createFloatingButton() {
     if (floatingBtn || !document.body || !currentSettings.showFloatingButton) return;
+
+    // Only inject on paper pages
     if (!window.location.pathname.startsWith('/paper/')) return;
 
     floatingBtn = document.createElement('button');
@@ -98,17 +124,21 @@
       `;
       floatingBtn.title = 'Switch to Dark Paper (Alt+I)';
     }
+
     floatingBtn.style.display = currentSettings.showFloatingButton ? 'flex' : 'none';
   }
 
+  // HUD Toast Notification
   function showToast(message, icon = '🌙') {
     if (!document.body) return;
+
     let toast = document.querySelector('.papershade-toast');
     if (!toast) {
       toast = document.createElement('div');
       toast.className = 'papershade-toast';
       document.body.appendChild(toast);
     }
+
     toast.innerHTML = `<span class="papershade-toast-icon">${icon}</span><span>${message}</span>`;
     toast.classList.add('papershade-toast-visible');
 
@@ -118,27 +148,32 @@
     }, 2200);
   }
 
+  // Toggle Dark Mode
   async function toggleInversion() {
     currentSettings.enabled = !currentSettings.enabled;
     applySettingsToDOM(currentSettings);
 
     try {
       await chrome.storage.local.set({ enabled: currentSettings.enabled });
+      // Notify background service worker to update badge
       chrome.runtime.sendMessage({
         action: 'STATE_CHANGED',
         enabled: currentSettings.enabled
       });
-    } catch (err) {}
+    } catch (err) {
+      // Storage might not be accessible if context invalidated
+    }
 
     if (currentSettings.enabled) {
       const modeLabel = currentSettings.mode === 'pure-invert' ? 'Pure Invert' :
-                        currentSettings.mode === 'sepia-dark' ? 'Warm Dark' : 'Smart Dark';
+                        currentSettings.mode === 'sepia-dark' ? 'Warm Dark' : 'True Black';
       showToast(`Paper Dark Mode (${modeLabel})`, '🌙');
     } else {
       showToast('Original Paper Colors', '☀️');
     }
   }
 
+  // Initialize from chrome.storage
   async function init() {
     try {
       const saved = await chrome.storage.local.get(DEFAULT_SETTINGS);
@@ -159,6 +194,7 @@
       tagPaperImages();
     }
 
+    // Set up MutationObserver to detect dynamically rendered PDF pages on scroll
     const observer = new MutationObserver(() => {
       tagPaperImages();
       if (!floatingBtn && document.body) {
@@ -172,6 +208,7 @@
     });
   }
 
+  // Listen for messages from popup or background script
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'UPDATE_SETTINGS') {
       currentSettings = { ...currentSettings, ...message.settings };
@@ -181,7 +218,7 @@
       toggleInversion().then(() => {
         sendResponse({ success: true, enabled: currentSettings.enabled });
       });
-      return true;
+      return true; // async response
     } else if (message.action === 'GET_STATUS') {
       sendResponse({
         success: true,
@@ -192,8 +229,10 @@
     return true;
   });
 
+  // Keyboard shortcut listener (Alt+I) inside the webpage context
   window.addEventListener('keydown', (e) => {
     if (e.altKey && (e.key === 'i' || e.key === 'I')) {
+      // Check if user is typing in an input or textarea
       const target = e.target;
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
         return;
@@ -203,5 +242,6 @@
     }
   });
 
+  // Kick off initialization
   init();
 })();
