@@ -3,8 +3,8 @@
 ## Metadata
 - **Extension Name**: PaperShade - CodeChef VIT Papers Dark Mode
 - **Short Name**: PaperShade
-- **Version**: 1.2.0
-- **Summary**: Invert question papers into radiant clear black and white on papers.codechefvit.com with zero edge glow or yellow paper tint.
+- **Version**: 1.3.0
+- **Summary**: Invert question papers into radiant clear black and white with zero edge glow, plus auto-bypass for low-contrast scans.
 - **Category**: Productivity / Accessibility
 - **Primary Language**: English
 
@@ -12,6 +12,7 @@
 Staring at bright white exam papers late at night while preparing for CAT1, CAT2, and FAT exams? PaperShade transforms previous year question papers on CodeChef-VIT Papers into an eye-friendly, high-contrast dark mode with radiant white text and pitch-black backgrounds.
 
 ### Key Features
+- **Auto-Bypass Low-Contrast Scans**: Automatically samples page luminance histograms to detect faint pencil or faded-ink scans, preserving original legibility with an instant "Invert Anyway" toggle.
 - **Clear Black & White Engine**: Strips yellow paper tints, warm lighting, and edge scanner halos into 100% clean black and white.
 - **Radiant White Text**: Boosts text strokes so font details and formulas are crisp, brilliant, and easy to read.
 - **True Black Pitch Backgrounds**: Inverts paper to pure `#000000` black, blending seamlessly with your dark display.

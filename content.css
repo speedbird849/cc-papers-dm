@@ -14,25 +14,25 @@
    - brightness(text-boost) + contrast: boosts text strokes to brilliant, radiant, highly visible white.
    - No glowing outlines, halos, or box-shadows.
 */
-html[data-papershade-enabled="true"][data-papershade-mode="mono-bw"] [data-pdf-viewer-theme] img,
-html[data-papershade-enabled="true"][data-papershade-mode="mono-bw"] [data-pdf-viewer-theme="light"] img,
-html[data-papershade-enabled="true"][data-papershade-mode="mono-bw"] [data-pdf-viewer-theme] canvas,
-html[data-papershade-enabled="true"][data-papershade-mode="mono-bw"] [data-pdf-viewer-theme="light"] canvas,
-html[data-papershade-enabled="true"][data-papershade-mode="mono-bw"] [data-pdf-viewer-theme="light"] svg,
-html[data-papershade-enabled="true"][data-papershade-mode="mono-bw"] div[style*="width"][style*="height"] > img,
-html.papershade-active[data-papershade-mode="mono-bw"] [data-pdf-viewer-theme] img,
-html.papershade-active[data-papershade-mode="mono-bw"] [data-pdf-viewer-theme] canvas,
-html.papershade-active[data-papershade-mode="mono-bw"] .papershade-target-img,
+html[data-papershade-enabled="true"][data-papershade-mode="mono-bw"] [data-pdf-viewer-theme] img:not(.papershade-bypass-contrast),
+html[data-papershade-enabled="true"][data-papershade-mode="mono-bw"] [data-pdf-viewer-theme="light"] img:not(.papershade-bypass-contrast),
+html[data-papershade-enabled="true"][data-papershade-mode="mono-bw"] [data-pdf-viewer-theme] canvas:not(.papershade-bypass-contrast),
+html[data-papershade-enabled="true"][data-papershade-mode="mono-bw"] [data-pdf-viewer-theme="light"] canvas:not(.papershade-bypass-contrast),
+html[data-papershade-enabled="true"][data-papershade-mode="mono-bw"] [data-pdf-viewer-theme="light"] svg:not(.papershade-bypass-contrast),
+html[data-papershade-enabled="true"][data-papershade-mode="mono-bw"] div[style*="width"][style*="height"] > img:not(.papershade-bypass-contrast),
+html.papershade-active[data-papershade-mode="mono-bw"] [data-pdf-viewer-theme] img:not(.papershade-bypass-contrast),
+html.papershade-active[data-papershade-mode="mono-bw"] [data-pdf-viewer-theme] canvas:not(.papershade-bypass-contrast),
+html.papershade-active[data-papershade-mode="mono-bw"] .papershade-target-img:not(.papershade-bypass-contrast),
 /* Fallback matching for legacy smart-dark */
-html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] [data-pdf-viewer-theme] img,
-html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] [data-pdf-viewer-theme="light"] img,
-html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] [data-pdf-viewer-theme] canvas,
-html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] [data-pdf-viewer-theme="light"] canvas,
-html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] [data-pdf-viewer-theme="light"] svg,
-html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] div[style*="width"][style*="height"] > img,
-html.papershade-active[data-papershade-mode="smart-dark"] [data-pdf-viewer-theme] img,
-html.papershade-active[data-papershade-mode="smart-dark"] [data-pdf-viewer-theme] canvas,
-html.papershade-active[data-papershade-mode="smart-dark"] .papershade-target-img {
+html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] [data-pdf-viewer-theme] img:not(.papershade-bypass-contrast),
+html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] [data-pdf-viewer-theme="light"] img:not(.papershade-bypass-contrast),
+html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] [data-pdf-viewer-theme] canvas:not(.papershade-bypass-contrast),
+html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] [data-pdf-viewer-theme="light"] canvas:not(.papershade-bypass-contrast),
+html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] [data-pdf-viewer-theme="light"] svg:not(.papershade-bypass-contrast),
+html[data-papershade-enabled="true"][data-papershade-mode="smart-dark"] div[style*="width"][style*="height"] > img:not(.papershade-bypass-contrast),
+html.papershade-active[data-papershade-mode="smart-dark"] [data-pdf-viewer-theme] img:not(.papershade-bypass-contrast),
+html.papershade-active[data-papershade-mode="smart-dark"] [data-pdf-viewer-theme] canvas:not(.papershade-bypass-contrast),
+html.papershade-active[data-papershade-mode="smart-dark"] .papershade-target-img:not(.papershade-bypass-contrast) {
   filter: grayscale(1) 
           brightness(var(--papershade-scan-boost, 1.85)) 
           contrast(var(--papershade-scan-contrast, 1.4)) 
@@ -53,15 +53,15 @@ html.papershade-active[data-papershade-mode="smart-dark"] .papershade-target-img
 }
 
 /* 2. COLOR PRESERVED MODE (Hue restore for diagrams) */
-html[data-papershade-enabled="true"][data-papershade-mode="color-diagrams"] [data-pdf-viewer-theme] img,
-html[data-papershade-enabled="true"][data-papershade-mode="color-diagrams"] [data-pdf-viewer-theme="light"] img,
-html[data-papershade-enabled="true"][data-papershade-mode="color-diagrams"] [data-pdf-viewer-theme] canvas,
-html[data-papershade-enabled="true"][data-papershade-mode="color-diagrams"] [data-pdf-viewer-theme="light"] canvas,
-html[data-papershade-enabled="true"][data-papershade-mode="color-diagrams"] [data-pdf-viewer-theme="light"] svg,
-html[data-papershade-enabled="true"][data-papershade-mode="color-diagrams"] div[style*="width"][style*="height"] > img,
-html.papershade-active[data-papershade-mode="color-diagrams"] [data-pdf-viewer-theme] img,
-html.papershade-active[data-papershade-mode="color-diagrams"] [data-pdf-viewer-theme] canvas,
-html.papershade-active[data-papershade-mode="color-diagrams"] .papershade-target-img {
+html[data-papershade-enabled="true"][data-papershade-mode="color-diagrams"] [data-pdf-viewer-theme] img:not(.papershade-bypass-contrast),
+html[data-papershade-enabled="true"][data-papershade-mode="color-diagrams"] [data-pdf-viewer-theme="light"] img:not(.papershade-bypass-contrast),
+html[data-papershade-enabled="true"][data-papershade-mode="color-diagrams"] [data-pdf-viewer-theme] canvas:not(.papershade-bypass-contrast),
+html[data-papershade-enabled="true"][data-papershade-mode="color-diagrams"] [data-pdf-viewer-theme="light"] canvas:not(.papershade-bypass-contrast),
+html[data-papershade-enabled="true"][data-papershade-mode="color-diagrams"] [data-pdf-viewer-theme="light"] svg:not(.papershade-bypass-contrast),
+html[data-papershade-enabled="true"][data-papershade-mode="color-diagrams"] div[style*="width"][style*="height"] > img:not(.papershade-bypass-contrast),
+html.papershade-active[data-papershade-mode="color-diagrams"] [data-pdf-viewer-theme] img:not(.papershade-bypass-contrast),
+html.papershade-active[data-papershade-mode="color-diagrams"] [data-pdf-viewer-theme] canvas:not(.papershade-bypass-contrast),
+html.papershade-active[data-papershade-mode="color-diagrams"] .papershade-target-img:not(.papershade-bypass-contrast) {
   filter: brightness(var(--papershade-scan-boost, 1.85)) 
           contrast(var(--papershade-scan-contrast, 1.4)) 
           invert(1) 
@@ -82,15 +82,15 @@ html.papershade-active[data-papershade-mode="color-diagrams"] .papershade-target
 }
 
 /* 3. WARM DARK / SEPIA MODE */
-html[data-papershade-enabled="true"][data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme] img,
-html[data-papershade-enabled="true"][data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme="light"] img,
-html[data-papershade-enabled="true"][data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme] canvas,
-html[data-papershade-enabled="true"][data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme="light"] canvas,
-html[data-papershade-enabled="true"][data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme="light"] svg,
-html[data-papershade-enabled="true"][data-papershade-mode="sepia-dark"] div[style*="width"][style*="height"] > img,
-html.papershade-active[data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme] img,
-html.papershade-active[data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme] canvas,
-html.papershade-active[data-papershade-mode="sepia-dark"] .papershade-target-img {
+html[data-papershade-enabled="true"][data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme] img:not(.papershade-bypass-contrast),
+html[data-papershade-enabled="true"][data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme="light"] img:not(.papershade-bypass-contrast),
+html[data-papershade-enabled="true"][data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme] canvas:not(.papershade-bypass-contrast),
+html[data-papershade-enabled="true"][data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme="light"] canvas:not(.papershade-bypass-contrast),
+html[data-papershade-enabled="true"][data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme="light"] svg:not(.papershade-bypass-contrast),
+html[data-papershade-enabled="true"][data-papershade-mode="sepia-dark"] div[style*="width"][style*="height"] > img:not(.papershade-bypass-contrast),
+html.papershade-active[data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme] img:not(.papershade-bypass-contrast),
+html.papershade-active[data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme] canvas:not(.papershade-bypass-contrast),
+html.papershade-active[data-papershade-mode="sepia-dark"] .papershade-target-img:not(.papershade-bypass-contrast) {
   filter: grayscale(1) 
           brightness(var(--papershade-scan-boost, 1.85)) 
           contrast(var(--papershade-scan-contrast, 1.4)) 
@@ -112,6 +112,19 @@ html.papershade-active[data-papershade-mode="sepia-dark"] .papershade-target-img
   box-shadow: none !important;
 }
 
+/* 4. LOW-CONTRAST BYPASS: SHOW ORIGINAL PAGE UNALTERED */
+html[data-papershade-enabled="true"] img.papershade-bypass-contrast,
+html[data-papershade-enabled="true"] [data-pdf-viewer-theme] img.papershade-bypass-contrast,
+html[data-papershade-enabled="true"] [data-pdf-viewer-theme="light"] img.papershade-bypass-contrast,
+html.papershade-active img.papershade-bypass-contrast,
+html.papershade-active [data-pdf-viewer-theme] img.papershade-bypass-contrast {
+  filter: none !important;
+  -webkit-filter: none !important;
+  border-radius: 4px !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5) !important;
+  transition: filter 0.25s ease-in-out;
+}
+
 /* Eliminate surrounding website glows/gradients: force pure pitch black #000000 */
 html[data-papershade-enabled="true"] body,
 html[data-papershade-enabled="true"] [data-pdf-viewer-theme],
@@ -121,6 +134,72 @@ html[data-papershade-enabled="true"] main,
 html[data-papershade-enabled="true"] center {
   background-color: #000000 !important;
   background-image: none !important;
+}
+
+/* Low-contrast Notification Banner */
+.papershade-bypass-banner {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-30px);
+  background: rgba(18, 18, 28, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #f8fafc;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 100000;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.papershade-bypass-banner.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.papershade-bypass-btn {
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  color: #fbbf24;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  outline: none;
+}
+
+.papershade-bypass-btn:hover {
+  background: rgba(245, 158, 11, 0.35);
+  color: #ffffff;
+}
+
+.papershade-bypass-close {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s ease;
+}
+
+.papershade-bypass-close:hover {
+  color: #ffffff;
 }
 
 /* Floating on-page quick toggle button */
@@ -162,6 +241,11 @@ html[data-papershade-enabled="true"] center {
   background: rgba(255, 255, 255, 0.15);
   border-color: #ffffff;
   color: #ffffff;
+}
+
+.papershade-floating-btn.bypass-active {
+  border-color: #f59e0b;
+  color: #fbbf24;
 }
 
 .papershade-floating-btn svg {
@@ -219,7 +303,8 @@ html[data-papershade-enabled="true"] center {
     box-shadow: none !important;
   }
   .papershade-floating-btn,
-  .papershade-toast {
+  .papershade-toast,
+  .papershade-bypass-banner {
     display: none !important;
   }
 }

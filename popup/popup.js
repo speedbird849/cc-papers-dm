@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     blackDepth: 110,
     textBrightness: 120,
     contrast: 110,
+    autoBypassLowContrast: true,
     showFloatingButton: true
   };
 
@@ -24,6 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const contrastSlider = document.getElementById('contrastSlider');
   const contrastVal = document.getElementById('contrastVal');
   const resetAdjustments = document.getElementById('resetAdjustments');
+  const autoBypassToggle = document.getElementById('autoBypassToggle');
   const floatingBtnToggle = document.getElementById('floatingBtnToggle');
 
   // Load Settings
@@ -73,6 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     contrastSlider.value = contrast;
     contrastVal.textContent = `${contrast}%`;
 
+    autoBypassToggle.checked = settings.autoBypassLowContrast !== false;
     floatingBtnToggle.checked = settings.showFloatingButton !== false;
   }
 
@@ -142,6 +145,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     settings.blackDepth = DEFAULT_SETTINGS.blackDepth;
     settings.contrast = DEFAULT_SETTINGS.contrast;
     renderUI();
+    saveAndBroadcast();
+  });
+
+  autoBypassToggle.addEventListener('change', () => {
+    settings.autoBypassLowContrast = autoBypassToggle.checked;
     saveAndBroadcast();
   });
 

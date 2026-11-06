@@ -7,6 +7,7 @@ A sleek, lightweight Chrome Extension (Manifest V3) designed for VIT Vellore stu
 
 ## ✨ Features
 
+- **🔍 Auto-Bypass Low-Contrast Scans**: Automatically analyzes the luminance distribution and contrast variance of scanned pages. If a paper is washed out, written in faint pencil, or lacks sufficient dynamic range, PaperShade preserves the original page for legibility and presents an instant floating override pill (`Invert Anyway`).
 - **⚪ Clear Black & White Engine**: Completely eliminates yellowing, warm lamp lighting, scanner edge glows, and chromatic shadows using full saturation neutralization (`grayscale(1)`).
 - **💡 Radiant, Punchy White Text**: Multi-stage luminance boosting makes text strokes pop with pure, bright, high-contrast white so questions and formulas are instantly readable.
 - **🖤 Pitch Black Backgrounds**: Pre-inversion luminance scaling (`brightness(1.85) contrast(1.4) invert(1)`) crushes paper backgrounds and photocopy shadows to true `rgb(0, 0, 0)` black.

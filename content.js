@@ -1,7 +1,7 @@
 /**
  * PaperShade Content Script
  * Inverts question papers into dark mode on papers.codechefvit.com
- * with Pure Black & White radiant text engine.
+ * with Pure Black & White radiant text engine and Automatic Low-Contrast Bypass.
  */
 
 (() => {
@@ -13,12 +13,16 @@
     blackDepth: 110,          // 60% to 160%, lifts dirty/yellow scan paper to pure white
     textBrightness: 120,      // 80% to 180%, boosts text to punchy bright white
     contrast: 110,            // 80% to 150%, sharpens text edges
+    autoBypassLowContrast: true, // Automatically shows original page if scan contrast is too low
     showFloatingButton: true
   };
 
   let currentSettings = { ...DEFAULT_SETTINGS };
   let floatingBtn = null;
+  let bypassBanner = null;
   let toastTimeout = null;
+  let forceInvertOverride = false;
+  let hasLowContrastPage = false;
 
   // Apply settings to document root immediately
   function applySettingsToDOM(settings) {
@@ -56,29 +60,146 @@
     // Update floating button appearance if present
     updateFloatingButtonState();
 
-    // Mark target images/canvases directly for instant response
+    // Inspect and tag target images/canvases
     tagPaperImages();
   }
 
-  // Tag images rendered inside the PDF viewer
+  // Detect if a paper image has exceptionally low contrast (faint ink, washed-out scan)
+  function isExceptionallyLowContrast(img) {
+    try {
+      const canvas = document.createElement('canvas');
+      const w = 64;
+      const h = 64;
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(img, 0, 0, w, h);
+      const data = ctx.getImageData(0, 0, w, h).data;
+
+      let sum = 0;
+      const lums = new Float32Array(w * h);
+      for (let i = 0, j = 0; i < data.length; i += 4, j++) {
+        const l = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+        lums[j] = l;
+        sum += l;
+      }
+
+      lums.sort();
+      const p5 = lums[Math.floor(lums.length * 0.05)];
+      const p95 = lums[Math.floor(lums.length * 0.95)];
+      const contrastRange = (p95 - p5) / 255;
+
+      const mean = sum / lums.length;
+      let variance = 0;
+      for (let j = 0; j < lums.length; j++) {
+        variance += Math.pow(lums[j] - mean, 2);
+      }
+      const rmsContrast = Math.sqrt(variance / lums.length) / 255;
+
+      // Exceptionally low contrast scans have narrow dynamic range (< 0.14) or tiny RMS variance (< 0.048)
+      return contrastRange < 0.14 || rmsContrast < 0.048;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  // Tag images and handle low-contrast bypass
   function tagPaperImages() {
     requestAnimationFrame(() => {
       const viewerImages = document.querySelectorAll(
         '[data-pdf-viewer-theme] img, div[style*="width"][style*="height"] > img, [data-pdf-viewer-theme] canvas'
       );
-      viewerImages.forEach((img) => {
-        if (!img.classList.contains('papershade-target-img')) {
-          img.classList.add('papershade-target-img');
+
+      let foundLowContrast = false;
+
+      viewerImages.forEach((el) => {
+        if (!el.classList.contains('papershade-target-img')) {
+          el.classList.add('papershade-target-img');
+        }
+
+        if (el.tagName === 'IMG' && currentSettings.autoBypassLowContrast && !forceInvertOverride) {
+          const runCheck = () => {
+            const lowContrast = isExceptionallyLowContrast(el);
+            if (lowContrast) {
+              foundLowContrast = true;
+              el.classList.add('papershade-bypass-contrast');
+            } else {
+              el.classList.remove('papershade-bypass-contrast');
+            }
+            updateBypassBanner(foundLowContrast);
+          };
+
+          if (el.complete && el.naturalWidth > 0) {
+            runCheck();
+          } else {
+            el.addEventListener('load', runCheck, { once: true });
+          }
+        } else if (forceInvertOverride) {
+          el.classList.remove('papershade-bypass-contrast');
         }
       });
     });
   }
 
+  // Low-Contrast Banner
+  function createBypassBanner() {
+    if (bypassBanner || !document.body) return;
+
+    bypassBanner = document.createElement('div');
+    bypassBanner.className = 'papershade-bypass-banner';
+    bypassBanner.innerHTML = `
+      <span>⚠️ Low contrast paper: Showing original page for readability</span>
+      <button class="papershade-bypass-btn" id="papershadeOverrideBtn">Invert Anyway</button>
+      <button class="papershade-bypass-close" id="papershadeCloseBanner" title="Dismiss">✕</button>
+    `;
+
+    document.body.appendChild(bypassBanner);
+
+    const overrideBtn = document.getElementById('papershadeOverrideBtn');
+    if (overrideBtn) {
+      overrideBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        forceInvertOverride = !forceInvertOverride;
+        if (forceInvertOverride) {
+          document.querySelectorAll('.papershade-bypass-contrast').forEach((el) => {
+            el.classList.remove('papershade-bypass-contrast');
+          });
+          overrideBtn.textContent = 'Show Original';
+          showToast('Forced Invert Applied', '⚡');
+        } else {
+          tagPaperImages();
+          overrideBtn.textContent = 'Invert Anyway';
+          showToast('Showing Original Page', '📄');
+        }
+      });
+    }
+
+    const closeBtn = document.getElementById('papershadeCloseBanner');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        bypassBanner.classList.remove('visible');
+      });
+    }
+  }
+
+  function updateBypassBanner(show) {
+    hasLowContrastPage = show;
+    if (!bypassBanner && show) {
+      createBypassBanner();
+    }
+    if (bypassBanner) {
+      if (show && !forceInvertOverride) {
+        bypassBanner.classList.add('visible');
+      } else {
+        bypassBanner.classList.remove('visible');
+      }
+    }
+    updateFloatingButtonState();
+  }
+
   // Floating Quick Toggle Button
   function createFloatingButton() {
     if (floatingBtn || !document.body || !currentSettings.showFloatingButton) return;
-
-    // Only inject on paper pages
     if (!window.location.pathname.startsWith('/paper/')) return;
 
     floatingBtn = document.createElement('button');
@@ -104,7 +225,18 @@
 
   function updateFloatingButtonState() {
     if (!floatingBtn) return;
-    if (currentSettings.enabled) {
+    if (hasLowContrastPage && !forceInvertOverride && currentSettings.enabled) {
+      floatingBtn.classList.remove('active');
+      floatingBtn.classList.add('bypass-active');
+      floatingBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+        </svg>
+      `;
+      floatingBtn.title = 'Original shown (low contrast scan). Click to toggle (Alt+I)';
+    } else if (currentSettings.enabled) {
+      floatingBtn.classList.remove('bypass-active');
       floatingBtn.classList.add('active');
       floatingBtn.innerHTML = `
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -113,6 +245,7 @@
       `;
       floatingBtn.title = 'Switch to Original Paper (Alt+I)';
     } else {
+      floatingBtn.classList.remove('bypass-active');
       floatingBtn.classList.remove('active');
       floatingBtn.innerHTML = `
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -160,14 +293,11 @@
 
     try {
       await chrome.storage.local.set({ enabled: currentSettings.enabled });
-      // Notify background service worker to update badge
       chrome.runtime.sendMessage({
         action: 'STATE_CHANGED',
         enabled: currentSettings.enabled
       });
-    } catch (err) {
-      // Storage might not be accessible if context invalidated
-    }
+    } catch (err) {}
 
     if (currentSettings.enabled) {
       const modeLabel = currentSettings.mode === 'color-diagrams' ? 'Color Preserved' :
@@ -182,7 +312,6 @@
   async function init() {
     try {
       const saved = await chrome.storage.local.get(DEFAULT_SETTINGS);
-      // Migrate old smart-dark mode to mono-bw if user hasn't explicitly customized
       if (saved.mode === 'smart-dark' || saved.mode === 'pure-invert') {
         saved.mode = 'mono-bw';
       }
@@ -203,7 +332,6 @@
       tagPaperImages();
     }
 
-    // Set up MutationObserver to detect dynamically rendered PDF pages on scroll
     const observer = new MutationObserver(() => {
       tagPaperImages();
       if (!floatingBtn && document.body) {
@@ -227,21 +355,21 @@
       toggleInversion().then(() => {
         sendResponse({ success: true, enabled: currentSettings.enabled });
       });
-      return true; // async response
+      return true;
     } else if (message.action === 'GET_STATUS') {
       sendResponse({
         success: true,
         isPaperPage: window.location.pathname.startsWith('/paper/'),
+        hasLowContrastPage,
         settings: currentSettings
       });
     }
     return true;
   });
 
-  // Keyboard shortcut listener (Alt+I) inside the webpage context
+  // Keyboard shortcut listener (Alt+I)
   window.addEventListener('keydown', (e) => {
     if (e.altKey && (e.key === 'i' || e.key === 'I')) {
-      // Check if user is typing in an input or textarea
       const target = e.target;
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
         return;
@@ -251,6 +379,5 @@
     }
   });
 
-  // Kick off initialization
   init();
 })();

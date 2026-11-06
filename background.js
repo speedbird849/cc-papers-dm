@@ -9,6 +9,7 @@ const DEFAULT_SETTINGS = {
   blackDepth: 110,
   textBrightness: 120,
   contrast: 110,
+  autoBypassLowContrast: true,
   showFloatingButton: true
 };
 
@@ -22,9 +23,7 @@ async function updateBadge(enabled) {
       await chrome.action.setBadgeText({ text: 'OFF' });
       await chrome.action.setBadgeBackgroundColor({ color: '#64748b' }); // Slate
     }
-  } catch (err) {
-    console.error('Failed to update badge:', err);
-  }
+  } catch (err) {}
 }
 
 // On extension installed or updated
