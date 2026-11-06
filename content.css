@@ -142,23 +142,27 @@ html[data-papershade-enabled="true"] center {
   top: 14px;
   right: 14px;
   z-index: 9999;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
+  justify-content: center;
+  padding: 6px 16px;
   border-radius: 9999px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 12px;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.2;
   cursor: pointer !important;
   pointer-events: auto !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
   user-select: none;
   outline: none;
+}
+
+.papershade-page-toggle-btn * {
+  pointer-events: none !important;
 }
 
 /* When the page is in Dark Mode (click to show original) */
@@ -176,6 +180,10 @@ html[data-papershade-enabled="true"] center {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
 }
 
+.papershade-page-toggle-btn.papershade-btn-dark:active {
+  transform: translateY(0);
+}
+
 /* When the page is showing Original scan (click to invert) */
 .papershade-page-toggle-btn.papershade-btn-original {
   background: rgba(15, 23, 42, 0.94);
@@ -191,9 +199,8 @@ html[data-papershade-enabled="true"] center {
   transform: translateY(-1px);
 }
 
-.papershade-page-toggle-btn .papershade-btn-icon {
-  font-size: 13px;
-  line-height: 1;
+.papershade-page-toggle-btn.papershade-btn-original:active {
+  transform: translateY(0);
 }
 
 /* Hide per-page buttons during printing */

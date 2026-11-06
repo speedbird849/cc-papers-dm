@@ -139,28 +139,36 @@
         }
 
         if (!currentSettings.enabled) {
-          btn.style.display = 'none';
+          if (btn.style.display !== 'none') {
+            btn.style.display = 'none';
+          }
         } else {
-          btn.style.display = 'flex';
-          if (isOriginal) {
-            btn.className = 'papershade-page-toggle-btn papershade-btn-original';
-            btn.innerHTML = '<span class="papershade-btn-icon">🌙</span><span>Invert</span>';
-            btn.title = 'Invert this page to Dark Mode';
-          } else {
-            btn.className = 'papershade-page-toggle-btn papershade-btn-dark';
-            btn.innerHTML = '<span class="papershade-btn-icon">📄</span><span>Original</span>';
-            btn.title = 'Show original scan for this page';
+          if (btn.style.display !== 'inline-flex') {
+            btn.style.display = 'inline-flex';
+          }
+
+          const targetMode = isOriginal ? 'original' : 'dark';
+          // Only mutate DOM if mode changed, preventing click interruption on button center
+          if (btn.dataset.btnMode !== targetMode) {
+            btn.dataset.btnMode = targetMode;
+            btn.className = `papershade-page-toggle-btn ${isOriginal ? 'papershade-btn-original' : 'papershade-btn-dark'}`;
+            btn.textContent = isOriginal ? 'Invert' : 'Original';
+            btn.title = isOriginal ? 'Invert this page to Dark Mode' : 'Show original scan for this page';
           }
         }
       });
     });
   }
 
-  // Global click handler using CAPTURE phase for 100% reliable clicks
+  // Global click handler using CAPTURE phase for 100% reliable clicks across the entire button
   document.addEventListener(
     'click',
     (e) => {
-      const btn = e.target.closest('.papershade-page-toggle-btn');
+      let target = e.target;
+      if (target && target.nodeType === Node.TEXT_NODE) {
+        target = target.parentElement;
+      }
+      const btn = target?.closest?.('.papershade-page-toggle-btn');
       if (!btn) return;
 
       e.preventDefault();
@@ -173,17 +181,19 @@
       if (bypassedPageKeys.has(pageKey)) {
         bypassedPageKeys.delete(pageKey);
         if (img) img.classList.remove('papershade-bypass-contrast');
+        btn.dataset.btnMode = 'dark';
         btn.className = 'papershade-page-toggle-btn papershade-btn-dark';
-        btn.innerHTML = '<span class="papershade-btn-icon">📄</span><span>Original</span>';
+        btn.textContent = 'Original';
         btn.title = 'Show original scan for this page';
-        showToast('Page Inverted', '⚡');
+        showToast('Page Inverted');
       } else {
         bypassedPageKeys.add(pageKey);
         if (img) img.classList.add('papershade-bypass-contrast');
+        btn.dataset.btnMode = 'original';
         btn.className = 'papershade-page-toggle-btn papershade-btn-original';
-        btn.innerHTML = '<span class="papershade-btn-icon">🌙</span><span>Invert</span>';
+        btn.textContent = 'Invert';
         btn.title = 'Invert this page to Dark Mode';
-        showToast('Showing Original Page', '📄');
+        showToast('Showing Original Page');
       }
     },
     true
@@ -249,7 +259,7 @@
   }
 
   // HUD Toast Notification
-  function showToast(message, icon = '🌙') {
+  function showToast(message) {
     if (!document.body) return;
 
     let toast = document.querySelector('.papershade-toast');
@@ -259,7 +269,7 @@
       document.body.appendChild(toast);
     }
 
-    toast.innerHTML = `<span class="papershade-toast-icon">${icon}</span><span>${message}</span>`;
+    toast.innerHTML = `<span>${message}</span>`;
     toast.classList.add('papershade-toast-visible');
 
     if (toastTimeout) clearTimeout(toastTimeout);
@@ -284,9 +294,9 @@
     if (currentSettings.enabled) {
       const modeLabel = currentSettings.mode === 'color-diagrams' ? 'Color Preserved' :
                         currentSettings.mode === 'sepia-dark' ? 'Warm Dark' : 'Clear B&W';
-      showToast(`Paper Dark Mode (${modeLabel})`, '🌙');
+      showToast(`Paper Dark Mode (${modeLabel})`);
     } else {
-      showToast('Original Paper Colors', '☀️');
+      showToast('Original Paper Colors');
     }
   }
 
