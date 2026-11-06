@@ -1,7 +1,7 @@
 /**
  * PaperShade Content Script
  * Inverts question papers into dark mode on papers.codechefvit.com
- * with True Black deep contrast engine.
+ * with Pure Black & White radiant text engine.
  */
 
 (() => {
@@ -9,10 +9,10 @@
 
   const DEFAULT_SETTINGS = {
     enabled: true,
-    mode: 'smart-dark',       // 'smart-dark' | 'pure-invert' | 'sepia-dark'
-    blackDepth: 100,          // 50% to 150%, controls scan pre-boost to crush dirty paper to pure black
-    contrast: 100,            // 70% to 130%
-    brightness: 100,          // 70% to 130%
+    mode: 'mono-bw',          // 'mono-bw' (Clear B&W) | 'color-diagrams' | 'sepia-dark'
+    blackDepth: 110,          // 60% to 160%, lifts dirty/yellow scan paper to pure white
+    textBrightness: 120,      // 80% to 180%, boosts text to punchy bright white
+    contrast: 110,            // 80% to 150%, sharpens text edges
     showFloatingButton: true
   };
 
@@ -33,20 +33,25 @@
       root.classList.remove('papershade-active');
     }
 
-    root.setAttribute('data-papershade-mode', settings.mode || 'smart-dark');
+    const mode = settings.mode || 'mono-bw';
+    root.setAttribute('data-papershade-mode', mode);
 
-    // True Black engine:
-    // Scanned papers have dirty off-white / gray paper backgrounds (around 65%-75% brightness).
-    // Boosting brightness & contrast pre-inversion lifts the paper to pure 100% white,
-    // so upon inversion it renders as pure pitch #000000 black, not murky gray.
-    const depth = typeof settings.blackDepth === 'number' ? settings.blackDepth : 100;
-    const scanBoost = 1.6 * (depth / 100);
-    const scanContrast = 1.35;
+    // Radiant Black & White engine:
+    // 1. Scan boost lifts yellow/dirty paper background to pure 100% white before invert.
+    const depth = typeof settings.blackDepth === 'number' ? settings.blackDepth : 110;
+    const scanBoost = 1.85 * (depth / 100);
+    const scanContrast = 1.4;
+
+    // 2. Text boost multiplies the inverted white text so it is radiant and clearly visible.
+    const textBright = typeof settings.textBrightness === 'number' ? settings.textBrightness : 120;
+    const textBoost = 1.45 * (textBright / 100);
+    const contrastVal = typeof settings.contrast === 'number' ? settings.contrast : 110;
+    const contrast = 1.15 * (contrastVal / 100);
 
     root.style.setProperty('--papershade-scan-boost', scanBoost.toFixed(3));
     root.style.setProperty('--papershade-scan-contrast', scanContrast.toString());
-    root.style.setProperty('--papershade-contrast', ((settings.contrast || 100) / 100).toString());
-    root.style.setProperty('--papershade-brightness', ((settings.brightness || 100) / 100).toString());
+    root.style.setProperty('--papershade-text-boost', textBoost.toFixed(3));
+    root.style.setProperty('--papershade-contrast', contrast.toFixed(3));
 
     // Update floating button appearance if present
     updateFloatingButtonState();
@@ -165,8 +170,8 @@
     }
 
     if (currentSettings.enabled) {
-      const modeLabel = currentSettings.mode === 'pure-invert' ? 'Pure Invert' :
-                        currentSettings.mode === 'sepia-dark' ? 'Warm Dark' : 'True Black';
+      const modeLabel = currentSettings.mode === 'color-diagrams' ? 'Color Preserved' :
+                        currentSettings.mode === 'sepia-dark' ? 'Warm Dark' : 'Clear B&W';
       showToast(`Paper Dark Mode (${modeLabel})`, '🌙');
     } else {
       showToast('Original Paper Colors', '☀️');
@@ -177,6 +182,10 @@
   async function init() {
     try {
       const saved = await chrome.storage.local.get(DEFAULT_SETTINGS);
+      // Migrate old smart-dark mode to mono-bw if user hasn't explicitly customized
+      if (saved.mode === 'smart-dark' || saved.mode === 'pure-invert') {
+        saved.mode = 'mono-bw';
+      }
       currentSettings = { ...DEFAULT_SETTINGS, ...saved };
     } catch (e) {
       currentSettings = { ...DEFAULT_SETTINGS };

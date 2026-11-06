@@ -5,10 +5,10 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const DEFAULT_SETTINGS = {
     enabled: true,
-    mode: 'smart-dark',
-    blackDepth: 100,
-    contrast: 100,
-    brightness: 100,
+    mode: 'mono-bw',
+    blackDepth: 110,
+    textBrightness: 120,
+    contrast: 110,
     showFloatingButton: true
   };
 
@@ -17,12 +17,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   const statusDot = document.getElementById('statusDot');
   const statusText = document.getElementById('statusText');
   const modeButtons = document.querySelectorAll('.mode-btn');
+  const textBrightnessSlider = document.getElementById('textBrightnessSlider');
+  const textBrightnessVal = document.getElementById('textBrightnessVal');
   const blackDepthSlider = document.getElementById('blackDepthSlider');
   const blackDepthVal = document.getElementById('blackDepthVal');
   const contrastSlider = document.getElementById('contrastSlider');
   const contrastVal = document.getElementById('contrastVal');
-  const brightnessSlider = document.getElementById('brightnessSlider');
-  const brightnessVal = document.getElementById('brightnessVal');
   const resetAdjustments = document.getElementById('resetAdjustments');
   const floatingBtnToggle = document.getElementById('floatingBtnToggle');
 
@@ -30,6 +30,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   let settings = { ...DEFAULT_SETTINGS };
   try {
     const saved = await chrome.storage.local.get(DEFAULT_SETTINGS);
+    if (saved.mode === 'smart-dark' || saved.mode === 'pure-invert') {
+      saved.mode = 'mono-bw';
+    }
     settings = { ...DEFAULT_SETTINGS, ...saved };
   } catch (err) {
     console.error('Failed to load settings:', err);
@@ -58,15 +61,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
 
-    const depth = typeof settings.blackDepth === 'number' ? settings.blackDepth : 100;
+    const textBright = typeof settings.textBrightness === 'number' ? settings.textBrightness : 120;
+    textBrightnessSlider.value = textBright;
+    textBrightnessVal.textContent = `${textBright}%`;
+
+    const depth = typeof settings.blackDepth === 'number' ? settings.blackDepth : 110;
     blackDepthSlider.value = depth;
     blackDepthVal.textContent = `${depth}%`;
 
-    contrastSlider.value = settings.contrast || 100;
-    contrastVal.textContent = `${settings.contrast || 100}%`;
-
-    brightnessSlider.value = settings.brightness || 100;
-    brightnessVal.textContent = `${settings.brightness || 100}%`;
+    const contrast = typeof settings.contrast === 'number' ? settings.contrast : 110;
+    contrastSlider.value = contrast;
+    contrastVal.textContent = `${contrast}%`;
 
     floatingBtnToggle.checked = settings.showFloatingButton !== false;
   }
@@ -114,6 +119,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
+  textBrightnessSlider.addEventListener('input', () => {
+    settings.textBrightness = parseInt(textBrightnessSlider.value, 10);
+    textBrightnessVal.textContent = `${settings.textBrightness}%`;
+    saveAndBroadcast();
+  });
+
   blackDepthSlider.addEventListener('input', () => {
     settings.blackDepth = parseInt(blackDepthSlider.value, 10);
     blackDepthVal.textContent = `${settings.blackDepth}%`;
@@ -126,16 +137,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     saveAndBroadcast();
   });
 
-  brightnessSlider.addEventListener('input', () => {
-    settings.brightness = parseInt(brightnessSlider.value, 10);
-    brightnessVal.textContent = `${settings.brightness}%`;
-    saveAndBroadcast();
-  });
-
   resetAdjustments.addEventListener('click', () => {
+    settings.textBrightness = DEFAULT_SETTINGS.textBrightness;
     settings.blackDepth = DEFAULT_SETTINGS.blackDepth;
     settings.contrast = DEFAULT_SETTINGS.contrast;
-    settings.brightness = DEFAULT_SETTINGS.brightness;
     renderUI();
     saveAndBroadcast();
   });

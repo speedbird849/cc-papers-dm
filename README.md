@@ -1,22 +1,25 @@
 # PaperShade 🌙
-> **CodeChef VIT Papers Dark Mode Extension — True Black Engine**
+> **CodeChef VIT Papers Dark Mode Extension — Clear Black & White Engine**
 
-A sleek, lightweight Chrome Extension (Manifest V3) designed for VIT Vellore students studying on [papers.codechefvit.com](https://papers.codechefvit.com). It effortlessly converts question papers (PDF scans) into an eye-friendly, pitch-black dark mode without murky gray backgrounds.
+A sleek, lightweight Chrome Extension (Manifest V3) designed for VIT Vellore students studying on [papers.codechefvit.com](https://papers.codechefvit.com). It effortlessly converts question papers (PDF scans) into an eye-friendly, pure black and white dark mode without edge glow, yellow paper tint, or murky gray backgrounds.
 
 ---
 
 ## ✨ Features
 
-- **🖤 True Black Recolor Engine**: Unlike naive inverters that turn scanned photocopy gray into washed-out dark gray, PaperShade uses pre-inversion luminance scaling (`brightness(1.6) contrast(1.35) invert(1)`) to ensure the paper background becomes genuine `#000000` pitch black while ink text renders razor-sharp.
-- **🎨 Smart Hue Preservation**: Uses `hue-rotate(180deg)` so colorful diagrams, grading stamps, and ink notations retain their intended natural colors rather than flipping across the color wheel.
+- **⚪ Clear Black & White Engine**: Completely eliminates yellowing, warm lamp lighting, scanner edge glows, and chromatic shadows using full saturation neutralization (`grayscale(1)`).
+- **💡 Radiant, Punchy White Text**: Multi-stage luminance boosting makes text strokes pop with pure, bright, high-contrast white so questions and formulas are instantly readable.
+- **🖤 Pitch Black Backgrounds**: Pre-inversion luminance scaling (`brightness(1.85) contrast(1.4) invert(1)`) crushes paper backgrounds and photocopy shadows to true `rgb(0, 0, 0)` black.
+- **🚫 Zero Edge Glow or Outlines**: Strips all borders, box-shadow halos, and website purple column gradients, allowing the paper to blend seamlessly into pure darkness.
 - **⚡ Multiple Presets**:
-  - **True Black (Smart Invert)**: Pitch-black background with preserved diagram colors.
-  - **Pure Invert**: Classic 100% negative inversion.
-  - **Warm Dark / Sepia**: Calming amber warmth to eliminate blue-light strain during late night exam cramming.
+  - **Clear B&W (Recommended)**: 100% monochrome, zero glow, radiant white text on pitch black.
+  - **Color Restore**: Preserves colors for papers with colorful diagrams and charts.
+  - **Warm Dark (Sepia)**: Soft amber warmth for late-night exam prep.
 - **🎛️ Fine Adjustments**:
-  - **Black Depth (Scan Clean)**: Adjust how aggressively photocopy shadows and camera scan grain are eliminated.
-  - **Text Contrast & Text Brightness**: Custom dial for your screen and ambient lighting.
-- **🔘 On-Page Quick Toggle**: Sleek floating glassmorphism button on paper pages for fast 1-click switching.
+  - **Text Brightness (80%–180%)**: Fine-tune text brilliance.
+  - **Black Depth (60%–160%)**: Easily wipe out severe scanner shadows or dark photocopy borders.
+  - **Text Contrast (80%–150%)**: Sharpen text strokes and formula details.
+- **🔘 On-Page Quick Toggle**: Sleek floating button on paper pages for fast 1-click switching.
 - **⌨️ Keyboard Shortcut**: Press <kbd>Alt</kbd> + <kbd>I</kbd> to toggle color inversion instantly with a subtle HUD toast notification.
 - **🖨️ Smart Print Safe**: Automatically turns off inversion when printing so you never waste toner or ink.
 - **⚡ Instant Zero-Flicker**: Runs at `document_start` to eliminate blinding white flashbangs when navigating between questions.
@@ -43,7 +46,7 @@ A sleek, lightweight Chrome Extension (Manifest V3) designed for VIT Vellore stu
 ## 🛠️ Architecture & Technical Details
 
 - **Manifest V3**: Built following modern Chrome Web Extensions standards.
-- **Photocopy Gray Elimination**: Scanned exam papers typically have backgrounds around 65%–75% luminance (RGB ~170–190). Naive inversion leaves them at ~30% luminance (a visible murky gray). PaperShade's two-stage filter cleanses the scan highlights to 100% white before inversion, resulting in true `rgb(0, 0, 0)` paper sheets.
+- **Yellow Paper & Glow Suppression**: Many exam papers are scanned from aged yellow paper or under warm lighting. Under standard hue-rotation, the missing blue channel inverted into bright yellow/brown edge halos. PaperShade uses `grayscale(1)` in Clear B&W mode to strip chromatic imbalance and eliminate glow.
 - **High-Specificity CSS Cascade**: Bypasses the website's built-in `[data-pdf-viewer-theme="light"] { filter: none !important; }` restriction cleanly.
 - **Dynamic Mutation Observer**: Continuously monitors the DOM for paginated blob images during scrolling.
 - **Background Service Worker**: Handles global keyboard commands (`Alt+I`) and extension badge state.

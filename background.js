@@ -5,10 +5,10 @@
 
 const DEFAULT_SETTINGS = {
   enabled: true,
-  mode: 'smart-dark',
-  blackDepth: 100,
-  contrast: 100,
-  brightness: 100,
+  mode: 'mono-bw',
+  blackDepth: 110,
+  textBrightness: 120,
+  contrast: 110,
   showFloatingButton: true
 };
 
@@ -31,6 +31,9 @@ async function updateBadge(enabled) {
 chrome.runtime.onInstalled.addListener(async () => {
   try {
     const existing = await chrome.storage.local.get(null);
+    if (existing.mode === 'smart-dark' || existing.mode === 'pure-invert') {
+      existing.mode = 'mono-bw';
+    }
     const initialSettings = { ...DEFAULT_SETTINGS, ...existing };
     await chrome.storage.local.set(initialSettings);
     await updateBadge(initialSettings.enabled);
