@@ -7,8 +7,7 @@ A sleek, lightweight Chrome Extension (Manifest V3) designed for VIT Vellore stu
 
 ## ✨ Features
 
-- **🔍 Page-Specific Low-Contrast Detection**: Automatically analyzes each page's luminance distribution, ink density, and contrast variance individually using unblurred point-stride sampling. If a specific page (e.g. Page 1) has faint print, low dynamic range, or washed-out ink, PaperShade preserves the original scan for that page while keeping subsequent high-contrast pages in pitch-black dark mode.
-- **🏷️ Interactive Per-Page Pill Badge**: Low-contrast pages feature a dedicated floating pill with 1-click toggle (`Invert Page` / `Show Original`) directly on the page container without altering the rest of the document.
+- **📄 Per-Page Original / Invert Toggle**: Every page features an individual floating toggle button (`Original` ↔ `Invert`) in the top-right corner. If a particular page has faint pencil or low contrast, toggle that single page back to original scan with 1 click while the rest of the document stays in dark mode!
 - **⚪ Clear Black & White Engine**: Completely eliminates yellowing, warm lamp lighting, scanner edge glows, and chromatic shadows using full saturation neutralization (`grayscale(1)`).
 - **💡 Radiant, Punchy White Text**: Multi-stage luminance boosting makes text strokes pop with pure, bright, high-contrast white so questions and formulas are instantly readable.
 - **🖤 Pitch Black Backgrounds**: Pre-inversion luminance scaling (`brightness(1.85) contrast(1.4) invert(1)`) crushes paper backgrounds and photocopy shadows to true `rgb(0, 0, 0)` black.

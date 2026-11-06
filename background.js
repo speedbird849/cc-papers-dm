@@ -9,7 +9,6 @@ const DEFAULT_SETTINGS = {
   blackDepth: 110,
   textBrightness: 120,
   contrast: 110,
-  autoBypassLowContrast: true,
   showFloatingButton: true
 };
 
