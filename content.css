@@ -136,44 +136,72 @@ html[data-papershade-enabled="true"] center {
   background-image: none !important;
 }
 
-/* Low-contrast Notification Banner */
-.papershade-bypass-banner {
-  position: fixed;
-  top: 18px;
-  left: 50%;
-  transform: translateX(-50%) translateY(-30px);
-  background: rgba(18, 18, 28, 0.94);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(245, 158, 11, 0.4);
-  color: #f8fafc;
-  padding: 8px 16px;
-  border-radius: 20px;
+/* Page-Specific Pill Badge */
+.papershade-page-pill {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px;
+  border-radius: 9999px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 12px;
   font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 100000;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
-  opacity: 0;
-  pointer-events: none;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.papershade-bypass-banner.visible {
-  opacity: 1;
+  line-height: 1;
   pointer-events: auto;
-  transform: translateX(-50%) translateY(0);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
 }
 
-.papershade-bypass-btn {
-  background: rgba(245, 158, 11, 0.2);
+/* Low-contrast detected: showing original page */
+.papershade-page-pill.papershade-pill-original {
+  background: rgba(24, 24, 27, 0.92);
   border: 1px solid rgba(245, 158, 11, 0.5);
-  color: #fbbf24;
-  padding: 3px 10px;
-  border-radius: 12px;
+  color: #fde047;
+  opacity: 1;
+}
+
+/* Low-contrast page forced to inverted */
+.papershade-page-pill.papershade-pill-forced-invert {
+  background: rgba(24, 24, 27, 0.92);
+  border: 1px solid rgba(59, 130, 246, 0.5);
+  color: #93c5fd;
+  opacity: 1;
+}
+
+/* Normal high-contrast pages: subtle on hover */
+.papershade-page-pill.papershade-pill-normal {
+  background: rgba(18, 18, 24, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+  opacity: 0;
+  transform: translateY(-2px);
+}
+
+div[style*="width"][style*="height"]:hover .papershade-page-pill.papershade-pill-normal {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.papershade-page-pill .papershade-pill-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.01em;
+}
+
+.papershade-page-pill .papershade-pill-btn {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 9999px;
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
@@ -181,21 +209,26 @@ html[data-papershade-enabled="true"] center {
   outline: none;
 }
 
-.papershade-bypass-btn:hover {
-  background: rgba(245, 158, 11, 0.35);
+.papershade-page-pill .papershade-pill-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+  transform: translateY(-1px);
+}
+
+.papershade-page-pill.papershade-pill-original .papershade-pill-btn {
+  background: rgba(245, 158, 11, 0.25);
+  border-color: rgba(245, 158, 11, 0.6);
+  color: #fef08a;
+}
+
+.papershade-page-pill.papershade-pill-original .papershade-pill-btn:hover {
+  background: rgba(245, 158, 11, 0.4);
   color: #ffffff;
 }
 
-.papershade-bypass-close {
-  background: none;
-  border: none;
-  color: #94a3b8;
-  cursor: pointer;
-  font-size: 14px;
-  padding: 0 4px;
-  display: flex;
-  align-items: center;
-  transition: color 0.15s ease;
+@media print {
+  .papershade-page-pill {
+    display: none !important;
+  }
 }
 
 .papershade-bypass-close:hover {

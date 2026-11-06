@@ -19,10 +19,10 @@
 
   let currentSettings = { ...DEFAULT_SETTINGS };
   let floatingBtn = null;
-  let bypassBanner = null;
   let toastTimeout = null;
-  let forceInvertOverride = false;
-  let hasLowContrastPage = false;
+  const pageStateMap = new Map(); // pageNumber -> { isLowContrast: boolean, userOverride: 'invert' | 'original' | null }
+  let lastPathname = window.location.pathname;
+  const announcedPages = new Set();
 
   // Apply settings to document root immediately
   function applySettingsToDOM(settings) {
@@ -67,134 +67,295 @@
   // Detect if a paper image has exceptionally low contrast (faint ink, washed-out scan)
   function isExceptionallyLowContrast(img) {
     try {
+      const nw = img.naturalWidth || img.width || 600;
+      const nh = img.naturalHeight || img.height || 800;
+      if (nw === 0 || nh === 0) return false;
+
+      // Fast stride sampling: downsample to ~1/3 size with nearest neighbor (preserves sharp ink stroke darkness)
+      const stride = 3;
+      const targetW = Math.max(100, Math.floor(nw / stride));
+      const targetH = Math.max(100, Math.floor(nh / stride));
+
       const canvas = document.createElement('canvas');
-      const w = 64;
-      const h = 64;
-      canvas.width = w;
-      canvas.height = h;
+      canvas.width = targetW;
+      canvas.height = targetH;
       const ctx = canvas.getContext('2d', { willReadFrequently: true });
-      ctx.drawImage(img, 0, 0, w, h);
-      const data = ctx.getImageData(0, 0, w, h).data;
+      if (!ctx) return false;
 
-      let sum = 0;
-      const lums = new Float32Array(w * h);
-      for (let i = 0, j = 0; i < data.length; i += 4, j++) {
-        const l = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-        lums[j] = l;
-        sum += l;
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(img, 0, 0, targetW, targetH);
+
+      const imgData = ctx.getImageData(0, 0, targetW, targetH).data;
+      const totalPixels = targetW * targetH;
+      const lums = new Uint8Array(totalPixels);
+
+      for (let i = 0, j = 0; i < imgData.length; i += 4, j++) {
+        // Fast integer luminance
+        lums[j] = (299 * imgData[i] + 587 * imgData[i + 1] + 114 * imgData[i + 2]) / 1000;
       }
 
-      lums.sort();
-      const p5 = lums[Math.floor(lums.length * 0.05)];
-      const p95 = lums[Math.floor(lums.length * 0.95)];
-      const contrastRange = (p95 - p5) / 255;
-
-      const mean = sum / lums.length;
-      let variance = 0;
-      for (let j = 0; j < lums.length; j++) {
-        variance += Math.pow(lums[j] - mean, 2);
+      // Fast histogram
+      const hist = new Uint32Array(256);
+      for (let i = 0; i < totalPixels; i++) {
+        hist[lums[i]]++;
       }
-      const rmsContrast = Math.sqrt(variance / lums.length) / 255;
 
-      // Exceptionally low contrast scans have narrow dynamic range (< 0.14) or tiny RMS variance (< 0.048)
-      return contrastRange < 0.14 || rmsContrast < 0.048;
+      // 90th percentile = paper background luminance
+      const p90Count = Math.floor(totalPixels * 0.90);
+      let cumulative = 0;
+      let bg = 255;
+      for (let v = 0; v < 256; v++) {
+        cumulative += hist[v];
+        if (cumulative >= p90Count) {
+          bg = v;
+          break;
+        }
+      }
+
+      // Non-light paper background: do not bypass
+      if (bg < 170) return false;
+
+      // Text strokes: pixels noticeably darker than paper background
+      const textThresh = bg - 30;
+      let textCount = 0;
+      let darkInkCount = 0;
+      const textHist = new Uint32Array(256);
+
+      for (let i = 0; i < totalPixels; i++) {
+        const val = lums[i];
+        if (val < textThresh) {
+          textCount++;
+          textHist[val]++;
+          if (val < 115) {
+            darkInkCount++;
+          }
+        }
+      }
+
+      if (textCount < 25) return false; // Minimal text / blank page
+
+      // Median text luminance
+      const halfText = Math.floor(textCount / 2);
+      let textAccum = 0;
+      let textMedian = textThresh;
+      for (let v = 0; v < 256; v++) {
+        textAccum += textHist[v];
+        if (textAccum >= halfText) {
+          textMedian = v;
+          break;
+        }
+      }
+
+      const overallContrast = (bg - textMedian) / Math.max(bg, 1);
+      const darkInkRatio = darkInkCount / textCount;
+
+      // Body text analysis: skip top 18% (header, exam title, logo)
+      const bodyStartIndex = Math.floor(targetH * 0.18) * targetW;
+      let bodyTextCount = 0;
+      let bodyDarkInkCount = 0;
+      const bodyTextHist = new Uint32Array(256);
+
+      for (let i = bodyStartIndex; i < totalPixels; i++) {
+        const val = lums[i];
+        if (val < textThresh) {
+          bodyTextCount++;
+          bodyTextHist[val]++;
+          if (val < 115) {
+            bodyDarkInkCount++;
+          }
+        }
+      }
+
+      let bodyContrast = overallContrast;
+      let bodyDarkRatio = darkInkRatio;
+
+      if (bodyTextCount >= 15) {
+        const halfBody = Math.floor(bodyTextCount / 2);
+        let bAccum = 0;
+        let bodyMedian = textThresh;
+        for (let v = 0; v < 256; v++) {
+          bAccum += bodyTextHist[v];
+          if (bAccum >= halfBody) {
+            bodyMedian = v;
+            break;
+          }
+        }
+        bodyContrast = (bg - bodyMedian) / Math.max(bg, 1);
+        bodyDarkRatio = bodyDarkInkCount / bodyTextCount;
+      }
+
+      // Detection threshold:
+      // In true-black dark mode, pixels >= 118 are crushed to pure black background.
+      // If the body text contrast is < 0.35, or dark ink ratio in body is < 0.14,
+      // or overall contrast is < 0.36 and dark ink ratio is < 0.22,
+      // the text strokes will become illegible/invisible when inverted.
+      return (bodyContrast < 0.35) || (bodyDarkRatio < 0.14) || (overallContrast < 0.36 && darkInkRatio < 0.22);
     } catch (err) {
+      console.warn('PaperShade: contrast check error', err);
       return false;
     }
   }
 
-  // Tag images and handle low-contrast bypass
+  // Get 1-based page number for an image
+  function getPageNumber(img) {
+    if (img.dataset.papershadePage) {
+      return parseInt(img.dataset.papershadePage, 10);
+    }
+    const scroller = document.querySelector('[data-pdf-viewer-theme]');
+    if (scroller) {
+      const wrappers = Array.from(scroller.querySelectorAll('div[style*="width"][style*="height"]'));
+      const myWrapper = img.closest('div[style*="width"][style*="height"]');
+      if (myWrapper) {
+        const idx = wrappers.indexOf(myWrapper);
+        if (idx !== -1) {
+          const num = idx + 1;
+          img.dataset.papershadePage = num.toString();
+          return num;
+        }
+      }
+    }
+    return 1;
+  }
+
+  // Render or update page-specific pill on wrapper
+  function updatePagePill(wrapper, pageNum, pageState, shouldBypass) {
+    if (!wrapper || !currentSettings.enabled) {
+      const existing = wrapper?.querySelector('.papershade-page-pill');
+      if (existing) existing.remove();
+      return;
+    }
+
+    if (window.getComputedStyle(wrapper).position === 'static') {
+      wrapper.style.position = 'relative';
+    }
+
+    let pill = wrapper.querySelector('.papershade-page-pill');
+    if (!pill) {
+      pill = document.createElement('div');
+      pill.className = 'papershade-page-pill';
+      wrapper.appendChild(pill);
+    }
+
+    if (shouldBypass) {
+      pill.className = 'papershade-page-pill papershade-pill-original';
+      const label = pageState.isLowContrast ? `Page ${pageNum} • Low Contrast (Original)` : `Page ${pageNum} • Original Scan`;
+      pill.innerHTML = `
+        <span class="papershade-pill-label">${label}</span>
+        <button class="papershade-pill-btn" type="button">Invert Page</button>
+      `;
+      const btn = pill.querySelector('button');
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        pageState.userOverride = 'invert';
+        const img = wrapper.querySelector('img');
+        if (img) evaluateAndStylePage(img);
+        showToast(`Page ${pageNum}: Inverted`, '⚡');
+      });
+    } else {
+      if (pageState.isLowContrast) {
+        pill.className = 'papershade-page-pill papershade-pill-forced-invert';
+        pill.innerHTML = `
+          <span class="papershade-pill-label">Page ${pageNum} • Inverted (Manual)</span>
+          <button class="papershade-pill-btn" type="button">Show Original</button>
+        `;
+        const btn = pill.querySelector('button');
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          pageState.userOverride = 'original';
+          const img = wrapper.querySelector('img');
+          if (img) evaluateAndStylePage(img);
+          showToast(`Page ${pageNum}: Showing Original Scan`, '📄');
+        });
+      } else {
+        pill.className = 'papershade-page-pill papershade-pill-normal';
+        pill.innerHTML = `
+          <span class="papershade-pill-label">Page ${pageNum}</span>
+          <button class="papershade-pill-btn" type="button">Original</button>
+        `;
+        const btn = pill.querySelector('button');
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          pageState.userOverride = 'original';
+          const img = wrapper.querySelector('img');
+          if (img) evaluateAndStylePage(img);
+          showToast(`Page ${pageNum}: Showing Original Scan`, '📄');
+        });
+      }
+    }
+  }
+
+  // Evaluate single page contrast and apply styling
+  function evaluateAndStylePage(img) {
+    if (window.location.pathname !== lastPathname) {
+      pageStateMap.clear();
+      announcedPages.clear();
+      lastPathname = window.location.pathname;
+    }
+
+    const pageNum = getPageNumber(img);
+    let pageState = pageStateMap.get(pageNum);
+
+    if (!pageState) {
+      const isLow = isExceptionallyLowContrast(img);
+      pageState = {
+        isLowContrast: isLow,
+        userOverride: null
+      };
+      pageStateMap.set(pageNum, pageState);
+
+      if (isLow && currentSettings.autoBypassLowContrast && !announcedPages.has(pageNum)) {
+        announcedPages.add(pageNum);
+        showToast(`Page ${pageNum}: Low contrast scan kept in original mode`, '📄');
+      }
+    }
+
+    const wrapper = img.closest('div[style*="width"][style*="height"]') || img.parentElement;
+
+    let shouldBypass = false;
+    if (currentSettings.enabled) {
+      if (pageState.userOverride === 'invert') {
+        shouldBypass = false;
+      } else if (pageState.userOverride === 'original') {
+        shouldBypass = true;
+      } else if (currentSettings.autoBypassLowContrast && pageState.isLowContrast) {
+        shouldBypass = true;
+      }
+    }
+
+    if (shouldBypass) {
+      img.classList.add('papershade-bypass-contrast');
+    } else {
+      img.classList.remove('papershade-bypass-contrast');
+    }
+
+    updatePagePill(wrapper, pageNum, pageState, shouldBypass);
+    updateFloatingButtonState();
+  }
+
+  // Tag images and handle per-page contrast detection
   function tagPaperImages() {
     requestAnimationFrame(() => {
       const viewerImages = document.querySelectorAll(
         '[data-pdf-viewer-theme] img, div[style*="width"][style*="height"] > img, [data-pdf-viewer-theme] canvas'
       );
 
-      let foundLowContrast = false;
-
       viewerImages.forEach((el) => {
         if (!el.classList.contains('papershade-target-img')) {
           el.classList.add('papershade-target-img');
         }
 
-        if (el.tagName === 'IMG' && currentSettings.autoBypassLowContrast && !forceInvertOverride) {
-          const runCheck = () => {
-            const lowContrast = isExceptionallyLowContrast(el);
-            if (lowContrast) {
-              foundLowContrast = true;
-              el.classList.add('papershade-bypass-contrast');
-            } else {
-              el.classList.remove('papershade-bypass-contrast');
-            }
-            updateBypassBanner(foundLowContrast);
-          };
-
+        if (el.tagName === 'IMG') {
           if (el.complete && el.naturalWidth > 0) {
-            runCheck();
+            evaluateAndStylePage(el);
           } else {
-            el.addEventListener('load', runCheck, { once: true });
+            el.addEventListener('load', () => evaluateAndStylePage(el), { once: true });
           }
-        } else if (forceInvertOverride) {
-          el.classList.remove('papershade-bypass-contrast');
         }
       });
     });
-  }
-
-  // Low-Contrast Banner
-  function createBypassBanner() {
-    if (bypassBanner || !document.body) return;
-
-    bypassBanner = document.createElement('div');
-    bypassBanner.className = 'papershade-bypass-banner';
-    bypassBanner.innerHTML = `
-      <span>⚠️ Low contrast paper: Showing original page for readability</span>
-      <button class="papershade-bypass-btn" id="papershadeOverrideBtn">Invert Anyway</button>
-      <button class="papershade-bypass-close" id="papershadeCloseBanner" title="Dismiss">✕</button>
-    `;
-
-    document.body.appendChild(bypassBanner);
-
-    const overrideBtn = document.getElementById('papershadeOverrideBtn');
-    if (overrideBtn) {
-      overrideBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        forceInvertOverride = !forceInvertOverride;
-        if (forceInvertOverride) {
-          document.querySelectorAll('.papershade-bypass-contrast').forEach((el) => {
-            el.classList.remove('papershade-bypass-contrast');
-          });
-          overrideBtn.textContent = 'Show Original';
-          showToast('Forced Invert Applied', '⚡');
-        } else {
-          tagPaperImages();
-          overrideBtn.textContent = 'Invert Anyway';
-          showToast('Showing Original Page', '📄');
-        }
-      });
-    }
-
-    const closeBtn = document.getElementById('papershadeCloseBanner');
-    if (closeBtn) {
-      closeBtn.addEventListener('click', () => {
-        bypassBanner.classList.remove('visible');
-      });
-    }
-  }
-
-  function updateBypassBanner(show) {
-    hasLowContrastPage = show;
-    if (!bypassBanner && show) {
-      createBypassBanner();
-    }
-    if (bypassBanner) {
-      if (show && !forceInvertOverride) {
-        bypassBanner.classList.add('visible');
-      } else {
-        bypassBanner.classList.remove('visible');
-      }
-    }
-    updateFloatingButtonState();
   }
 
   // Floating Quick Toggle Button
@@ -225,17 +386,7 @@
 
   function updateFloatingButtonState() {
     if (!floatingBtn) return;
-    if (hasLowContrastPage && !forceInvertOverride && currentSettings.enabled) {
-      floatingBtn.classList.remove('active');
-      floatingBtn.classList.add('bypass-active');
-      floatingBtn.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-          <polyline points="14 2 14 8 20 8"></polyline>
-        </svg>
-      `;
-      floatingBtn.title = 'Original shown (low contrast scan). Click to toggle (Alt+I)';
-    } else if (currentSettings.enabled) {
+    if (currentSettings.enabled) {
       floatingBtn.classList.remove('bypass-active');
       floatingBtn.classList.add('active');
       floatingBtn.innerHTML = `
@@ -360,7 +511,7 @@
       sendResponse({
         success: true,
         isPaperPage: window.location.pathname.startsWith('/paper/'),
-        hasLowContrastPage,
+        hasLowContrastPage: Array.from(pageStateMap.values()).some((s) => s.isLowContrast),
         settings: currentSettings
       });
     }
