@@ -112,17 +112,44 @@ html.papershade-active[data-papershade-mode="sepia-dark"] .papershade-target-img
   box-shadow: none !important;
 }
 
-/* 4. LOW-CONTRAST BYPASS: SHOW ORIGINAL PAGE UNALTERED */
+/* 4. ORIGINAL PAGE (NOT INVERTED): NO EXTRA BORDER, MARGIN, OUTLINE, OR SHADOW */
 html[data-papershade-enabled="true"] img.papershade-bypass-contrast,
 html[data-papershade-enabled="true"] [data-pdf-viewer-theme] img.papershade-bypass-contrast,
 html[data-papershade-enabled="true"] [data-pdf-viewer-theme="light"] img.papershade-bypass-contrast,
 html.papershade-active img.papershade-bypass-contrast,
-html.papershade-active [data-pdf-viewer-theme] img.papershade-bypass-contrast {
+html.papershade-active [data-pdf-viewer-theme] img.papershade-bypass-contrast,
+.papershade-target-img.papershade-bypass-contrast {
   filter: none !important;
   -webkit-filter: none !important;
-  border-radius: 4px !important;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5) !important;
-  transition: filter 0.25s ease-in-out;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  border-radius: 0px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transition: filter 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Ensure paper images and page containers never have extra borders, margins, or shadows */
+[data-pdf-viewer-theme] img,
+[data-pdf-viewer-theme="light"] img,
+[data-pdf-viewer-theme] canvas,
+[data-pdf-viewer-theme="light"] canvas,
+div[style*="width"][style*="height"] > img,
+.papershade-target-img {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  border-radius: 0px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+[data-pdf-viewer-theme] div[style*="width"][style*="height"] {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  border-radius: 0px !important;
 }
 
 /* Eliminate surrounding website glows/gradients: force pure pitch black #000000 */

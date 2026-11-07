@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "PaperShade - CodeChef VIT Papers Dark Mode",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Invert question papers into radiant clear black and white with zero edge glow, plus an individual Original toggle on each page.",
   "icons": {
     "16": "icons/icon16.png",
