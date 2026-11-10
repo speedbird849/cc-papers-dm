@@ -130,31 +130,73 @@
           img.classList.remove('papershade-bypass-contrast');
         }
 
-        // Mount or update the per-page toggle button
-        let btn = wrapper.querySelector('.papershade-page-toggle-btn');
-        if (!btn) {
-          btn = document.createElement('button');
-          btn.className = 'papershade-page-toggle-btn';
-          btn.type = 'button';
-          wrapper.appendChild(btn);
+        // Mount or update the page controls container
+        let controls = wrapper.querySelector('.papershade-page-controls');
+        if (!controls) {
+          controls = document.createElement('div');
+          controls.className = 'papershade-page-controls';
+          wrapper.appendChild(controls);
+        }
+
+        let pageBtn = controls.querySelector('.papershade-page-toggle-btn');
+        if (!pageBtn) {
+          pageBtn = document.createElement('button');
+          pageBtn.className = 'papershade-page-toggle-btn';
+          pageBtn.type = 'button';
+          controls.appendChild(pageBtn);
+        }
+
+        let fullBtn = controls.querySelector('.papershade-full-toggle-btn');
+        if (!fullBtn) {
+          fullBtn = document.createElement('button');
+          fullBtn.className = 'papershade-full-toggle-btn';
+          fullBtn.type = 'button';
+          controls.appendChild(fullBtn);
         }
 
         if (!currentSettings.enabled) {
-          if (btn.style.display !== 'none') {
-            btn.style.display = 'none';
-          }
-        } else {
-          if (btn.style.display !== 'inline-flex') {
-            btn.style.display = 'inline-flex';
+          // Full paper is in original mode
+          if (pageBtn.style.display !== 'none') {
+            pageBtn.style.display = 'none';
           }
 
-          const targetMode = isOriginal ? 'original' : 'dark';
+          if (fullBtn.style.display !== 'inline-flex') {
+            fullBtn.style.display = 'inline-flex';
+          }
+          if (fullBtn.dataset.btnMode !== 'full-invert') {
+            fullBtn.dataset.btnMode = 'full-invert';
+            fullBtn.className = 'papershade-full-toggle-btn papershade-btn-original';
+            fullBtn.textContent = 'Invert Full Paper';
+            fullBtn.title = 'Invert entire paper to Dark Mode';
+          }
+        } else {
+          // Full paper is enabled (Dark Mode active)
+          if (pageBtn.style.display !== 'inline-flex') {
+            pageBtn.style.display = 'inline-flex';
+          }
+          if (fullBtn.style.display !== 'inline-flex') {
+            fullBtn.style.display = 'inline-flex';
+          }
+
+          const pageTargetMode = isOriginal ? 'original' : 'dark';
           // Only mutate DOM if mode changed, preventing click interruption on button center
-          if (btn.dataset.btnMode !== targetMode) {
-            btn.dataset.btnMode = targetMode;
-            btn.className = `papershade-page-toggle-btn ${isOriginal ? 'papershade-btn-original' : 'papershade-btn-dark'}`;
-            btn.textContent = isOriginal ? 'Invert' : 'Original';
-            btn.title = isOriginal ? 'Invert this page to Dark Mode' : 'Show original scan for this page';
+          if (pageBtn.dataset.btnMode !== pageTargetMode) {
+            pageBtn.dataset.btnMode = pageTargetMode;
+            pageBtn.className = `papershade-page-toggle-btn ${isOriginal ? 'papershade-btn-original' : 'papershade-btn-dark'}`;
+            pageBtn.textContent = isOriginal ? 'Invert' : 'Original';
+            pageBtn.title = isOriginal ? 'Invert this page to Dark Mode' : 'Show original scan for this page';
+          }
+
+          const fullTargetMode = isOriginal ? 'full-invert' : 'full-revert';
+          const fullLabel = isOriginal ? 'Invert Full Paper' : 'Revert Full Paper';
+          const fullClass = isOriginal ? 'papershade-btn-original' : 'papershade-btn-dark';
+          const fullTitle = isOriginal ? 'Invert entire paper to Dark Mode' : 'Revert entire paper to Original scan';
+
+          if (fullBtn.dataset.btnMode !== fullTargetMode) {
+            fullBtn.dataset.btnMode = fullTargetMode;
+            fullBtn.className = `papershade-full-toggle-btn ${fullClass}`;
+            fullBtn.textContent = fullLabel;
+            fullBtn.title = fullTitle;
           }
         }
       });
@@ -169,32 +211,37 @@
       if (target && target.nodeType === Node.TEXT_NODE) {
         target = target.parentElement;
       }
-      const btn = target?.closest?.('.papershade-page-toggle-btn');
-      if (!btn) return;
+      const pageBtn = target?.closest?.('.papershade-page-toggle-btn');
+      const fullBtn = target?.closest?.('.papershade-full-toggle-btn');
 
-      e.preventDefault();
-      e.stopPropagation();
+      if (pageBtn) {
+        e.preventDefault();
+        e.stopPropagation();
 
-      const wrapper = btn.closest('div[style*="width"][style*="height"]') || btn.parentElement;
-      const img = wrapper?.querySelector('img') || wrapper?.querySelector('.papershade-target-img');
-      const pageKey = getPageKey(wrapper, img);
+        const wrapper = pageBtn.closest('div[style*="width"][style*="height"]') || pageBtn.parentElement?.parentElement;
+        const img = wrapper?.querySelector('img') || wrapper?.querySelector('.papershade-target-img');
+        const pageKey = getPageKey(wrapper, img);
 
-      if (bypassedPageKeys.has(pageKey)) {
-        bypassedPageKeys.delete(pageKey);
-        if (img) img.classList.remove('papershade-bypass-contrast');
-        btn.dataset.btnMode = 'dark';
-        btn.className = 'papershade-page-toggle-btn papershade-btn-dark';
-        btn.textContent = 'Original';
-        btn.title = 'Show original scan for this page';
-        showToast('Page Inverted');
-      } else {
-        bypassedPageKeys.add(pageKey);
-        if (img) img.classList.add('papershade-bypass-contrast');
-        btn.dataset.btnMode = 'original';
-        btn.className = 'papershade-page-toggle-btn papershade-btn-original';
-        btn.textContent = 'Invert';
-        btn.title = 'Invert this page to Dark Mode';
-        showToast('Showing Original Page');
+        if (bypassedPageKeys.has(pageKey)) {
+          bypassedPageKeys.delete(pageKey);
+          if (img) img.classList.remove('papershade-bypass-contrast');
+          showToast('Page Inverted');
+        } else {
+          bypassedPageKeys.add(pageKey);
+          if (img) img.classList.add('papershade-bypass-contrast');
+          showToast('Showing Original Page');
+        }
+
+        tagPaperImages();
+        updateFloatingButtonState();
+        return;
+      }
+
+      if (fullBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleFullPaper();
+        return;
       }
     },
     true
@@ -207,19 +254,14 @@
 
     floatingBtn = document.createElement('button');
     floatingBtn.className = 'papershade-floating-btn';
+    floatingBtn.type = 'button';
     floatingBtn.setAttribute('title', 'Toggle Paper Dark Mode (Alt+I)');
     floatingBtn.setAttribute('aria-label', 'Toggle Paper Dark Mode');
-
-    floatingBtn.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-      </svg>
-    `;
 
     floatingBtn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      toggleInversion();
+      toggleFullPaper();
     });
 
     document.body.appendChild(floatingBtn);
@@ -228,20 +270,23 @@
 
   function updateFloatingButtonState() {
     if (!floatingBtn) return;
-    if (currentSettings.enabled) {
-      floatingBtn.classList.remove('bypass-active');
-      floatingBtn.classList.add('active');
+    const isDark = currentSettings.enabled && bypassedPageKeys.size === 0;
+
+    if (isDark) {
+      floatingBtn.classList.remove('papershade-floating-reverted');
+      floatingBtn.classList.add('papershade-floating-dark');
       floatingBtn.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
         </svg>
+        <span>Revert Full Paper</span>
       `;
       floatingBtn.title = 'Switch to Original Paper (Alt+I)';
     } else {
-      floatingBtn.classList.remove('bypass-active');
-      floatingBtn.classList.remove('active');
+      floatingBtn.classList.remove('papershade-floating-dark');
+      floatingBtn.classList.add('papershade-floating-reverted');
       floatingBtn.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="5"></circle>
           <line x1="12" y1="1" x2="12" y2="3"></line>
           <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -252,11 +297,12 @@
           <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
           <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
         </svg>
+        <span>Invert Full Paper</span>
       `;
       floatingBtn.title = 'Switch to Dark Paper (Alt+I)';
     }
 
-    floatingBtn.style.display = currentSettings.showFloatingButton ? 'flex' : 'none';
+    floatingBtn.style.display = currentSettings.showFloatingButton ? 'inline-flex' : 'none';
   }
 
   // HUD Toast Notification
@@ -279,10 +325,19 @@
     }, 2200);
   }
 
-  // Toggle Dark Mode (Global)
-  async function toggleInversion() {
-    currentSettings.enabled = !currentSettings.enabled;
-    applySettingsToDOM(currentSettings);
+  // Toggle Full Paper Dark Mode / Original Mode
+  async function toggleFullPaper() {
+    if (currentSettings.enabled && bypassedPageKeys.size === 0) {
+      currentSettings.enabled = false;
+      bypassedPageKeys.clear();
+      applySettingsToDOM(currentSettings);
+      showToast('Full Paper Reverted');
+    } else {
+      currentSettings.enabled = true;
+      bypassedPageKeys.clear();
+      applySettingsToDOM(currentSettings);
+      showToast('Full Paper Inverted');
+    }
 
     try {
       await chrome.storage.local.set({ enabled: currentSettings.enabled });
@@ -291,15 +346,9 @@
         enabled: currentSettings.enabled
       });
     } catch (err) {}
-
-    if (currentSettings.enabled) {
-      const modeLabel = currentSettings.mode === 'color-diagrams' ? 'Color Preserved' :
-                        currentSettings.mode === 'sepia-dark' ? 'Warm Dark' : 'Clear B&W';
-      showToast(`Paper Dark Mode (${modeLabel})`);
-    } else {
-      showToast('Original Paper Colors');
-    }
   }
+
+  const toggleInversion = toggleFullPaper;
 
   // Initialize from chrome.storage
   async function init() {
