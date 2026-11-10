@@ -10,7 +10,7 @@ A sleek, lightweight Chrome Extension (Manifest V3) designed for VIT Vellore stu
 - **Per-Page Original / Invert Toggle**: Every page features an individual floating toggle button (`Original` <-> `Invert`) in the top-right corner. If a particular page has faint pencil or low contrast, toggle that single page back to original scan with 1 click while the rest of the document stays in dark mode!
 - **Clear Black & White Engine**: Completely eliminates yellowing, warm lamp lighting, scanner edge glows, and chromatic shadows using full saturation neutralization (`grayscale(1)`).
 - **Radiant, Punchy White Text**: Multi-stage luminance boosting makes text strokes pop with pure, bright, high-contrast white so questions and formulas are instantly readable.
-- **Pitch Black Backgrounds**: Pre-inversion luminance scaling (`brightness(1.85) contrast(1.4) invert(1)`) crushes paper backgrounds and photocopy shadows to true `rgb(0, 0, 0)` black.
+- **Pitch Black Backgrounds & High-Fidelity Stroke Retention**: Post-inversion contrast normalization crushes paper backgrounds and photocopy shadows to true `rgb(0, 0, 0)` black while preserving thin table gridlines, Gantt charts, and faint anti-aliased font strokes without clipping.
 - **Zero Edge Glow or Outlines**: Strips all borders, box-shadow halos, and website purple column gradients, allowing the paper to blend seamlessly into pure darkness.
 - **Multiple Presets**:
   - **Clear B&W (Recommended)**: 100% monochrome, zero glow, radiant white text on pitch black.

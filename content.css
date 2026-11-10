@@ -1,17 +1,18 @@
 /* Base CSS Variables for fine-tuning */
 :root {
-  --papershade-scan-boost: 1.85;
-  --papershade-scan-contrast: 1.4;
-  --papershade-text-boost: 1.45;
-  --papershade-contrast: 1.15;
+  --papershade-scan-boost: 1.01;
+  --papershade-scan-contrast: 1.0;
+  --papershade-text-boost: 1.38;
+  --papershade-contrast: 1.25;
 }
 
 /* 1. MONO BLACK & WHITE MODE (Default) */
 /* 
    - grayscale(1): strips all yellow paper hues, warm lighting, and chromatic artifacts completely.
-   - brightness(scan-boost) + contrast(scan-contrast): elevates all paper, yellowed borders, and scanner noise to 100% white.
-   - invert(1): transforms pure white into absolute pitch black #000000.
-   - brightness(text-boost) + contrast: boosts text strokes to brilliant, radiant, highly visible white.
+   - brightness(scan-boost): gentle normalization that protects faint text and table lines.
+   - invert(1): transforms paper background into dark, ink into white.
+   - contrast(contrast): cleanly crushes off-white paper background to pure pitch black #000000.
+   - brightness(text-boost): boosts text strokes to brilliant, radiant, highly visible white.
    - No glowing outlines, halos, or box-shadows.
 */
 html[data-papershade-enabled="true"][data-papershade-mode="mono-bw"] [data-pdf-viewer-theme] img:not(.papershade-bypass-contrast),
@@ -34,17 +35,15 @@ html.papershade-active[data-papershade-mode="smart-dark"] [data-pdf-viewer-theme
 html.papershade-active[data-papershade-mode="smart-dark"] [data-pdf-viewer-theme] canvas:not(.papershade-bypass-contrast),
 html.papershade-active[data-papershade-mode="smart-dark"] .papershade-target-img:not(.papershade-bypass-contrast) {
   filter: grayscale(1) 
-          brightness(var(--papershade-scan-boost, 1.85)) 
-          contrast(var(--papershade-scan-contrast, 1.4)) 
+          brightness(var(--papershade-scan-boost, 1.01)) 
           invert(1) 
-          brightness(var(--papershade-text-boost, 1.45)) 
-          contrast(var(--papershade-contrast, 1.15)) !important;
+          contrast(var(--papershade-contrast, 1.25)) 
+          brightness(var(--papershade-text-boost, 1.38)) !important;
   -webkit-filter: grayscale(1) 
-                  brightness(var(--papershade-scan-boost, 1.85)) 
-                  contrast(var(--papershade-scan-contrast, 1.4)) 
+                  brightness(var(--papershade-scan-boost, 1.01)) 
                   invert(1) 
-                  brightness(var(--papershade-text-boost, 1.45)) 
-                  contrast(var(--papershade-contrast, 1.15)) !important;
+                  contrast(var(--papershade-contrast, 1.25)) 
+                  brightness(var(--papershade-text-boost, 1.38)) !important;
   transition: filter 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 0px !important;
   border: none !important;
@@ -62,18 +61,16 @@ html[data-papershade-enabled="true"][data-papershade-mode="color-diagrams"] div[
 html.papershade-active[data-papershade-mode="color-diagrams"] [data-pdf-viewer-theme] img:not(.papershade-bypass-contrast),
 html.papershade-active[data-papershade-mode="color-diagrams"] [data-pdf-viewer-theme] canvas:not(.papershade-bypass-contrast),
 html.papershade-active[data-papershade-mode="color-diagrams"] .papershade-target-img:not(.papershade-bypass-contrast) {
-  filter: brightness(var(--papershade-scan-boost, 1.85)) 
-          contrast(var(--papershade-scan-contrast, 1.4)) 
+  filter: brightness(var(--papershade-scan-boost, 1.01)) 
           invert(1) 
           hue-rotate(180deg) 
-          brightness(var(--papershade-text-boost, 1.45)) 
-          contrast(var(--papershade-contrast, 1.15)) !important;
-  -webkit-filter: brightness(var(--papershade-scan-boost, 1.85)) 
-                  contrast(var(--papershade-scan-contrast, 1.4)) 
+          contrast(var(--papershade-contrast, 1.25)) 
+          brightness(var(--papershade-text-boost, 1.38)) !important;
+  -webkit-filter: brightness(var(--papershade-scan-boost, 1.01)) 
                   invert(1) 
                   hue-rotate(180deg) 
-                  brightness(var(--papershade-text-boost, 1.45)) 
-                  contrast(var(--papershade-contrast, 1.15)) !important;
+                  contrast(var(--papershade-contrast, 1.25)) 
+                  brightness(var(--papershade-text-boost, 1.38)) !important;
   transition: filter 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 0px !important;
   border: none !important;
@@ -92,19 +89,17 @@ html.papershade-active[data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme
 html.papershade-active[data-papershade-mode="sepia-dark"] [data-pdf-viewer-theme] canvas:not(.papershade-bypass-contrast),
 html.papershade-active[data-papershade-mode="sepia-dark"] .papershade-target-img:not(.papershade-bypass-contrast) {
   filter: grayscale(1) 
-          brightness(var(--papershade-scan-boost, 1.85)) 
-          contrast(var(--papershade-scan-contrast, 1.4)) 
+          brightness(var(--papershade-scan-boost, 1.01)) 
           invert(1) 
           sepia(0.35) 
-          brightness(var(--papershade-text-boost, 1.45)) 
-          contrast(var(--papershade-contrast, 1.15)) !important;
+          contrast(var(--papershade-contrast, 1.25)) 
+          brightness(var(--papershade-text-boost, 1.38)) !important;
   -webkit-filter: grayscale(1) 
-                  brightness(var(--papershade-scan-boost, 1.85)) 
-                  contrast(var(--papershade-scan-contrast, 1.4)) 
+                  brightness(var(--papershade-scan-boost, 1.01)) 
                   invert(1) 
                   sepia(0.35) 
-                  brightness(var(--papershade-text-boost, 1.45)) 
-                  contrast(var(--papershade-contrast, 1.15)) !important;
+                  contrast(var(--papershade-contrast, 1.25)) 
+                  brightness(var(--papershade-text-boost, 1.38)) !important;
   transition: filter 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 0px !important;
   border: none !important;

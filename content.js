@@ -39,16 +39,17 @@
     root.setAttribute('data-papershade-mode', mode);
 
     const depth = typeof settings.blackDepth === 'number' ? settings.blackDepth : 110;
-    const scanBoost = 1.85 * (depth / 100);
-    const scanContrast = 1.4;
+    // Gentle scan boost (approx 0.97 - 1.05) to eliminate paper haze without crushing faint strokes/gridlines before inversion
+    const scanBoost = 0.92 + 0.08 * (depth / 100);
+    const scanContrast = 1.0;
 
     const textBright = typeof settings.textBrightness === 'number' ? settings.textBrightness : 120;
-    const textBoost = 1.45 * (textBright / 100);
+    const textBoost = 1.15 * (textBright / 100);
     const contrastVal = typeof settings.contrast === 'number' ? settings.contrast : 110;
-    const contrast = 1.15 * (contrastVal / 100);
+    const contrast = 1.14 * (contrastVal / 100);
 
     root.style.setProperty('--papershade-scan-boost', scanBoost.toFixed(3));
-    root.style.setProperty('--papershade-scan-contrast', scanContrast.toString());
+    root.style.setProperty('--papershade-scan-contrast', scanContrast.toFixed(1));
     root.style.setProperty('--papershade-text-boost', textBoost.toFixed(3));
     root.style.setProperty('--papershade-contrast', contrast.toFixed(3));
 
