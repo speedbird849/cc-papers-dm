@@ -64,11 +64,23 @@
     }
 
     updateFloatingButtonState();
-    tagPaperImages();
+    scheduleTagPaperImages();
   }
 
-  // Get stable key for a page wrapper/image
+  let tagRafId = null;
+  function scheduleTagPaperImages() {
+    if (tagRafId) return;
+    tagRafId = requestAnimationFrame(() => {
+      tagRafId = null;
+      tagPaperImages();
+    });
+  }
+
+  // Get stable key for a page wrapper/image with fast caching
   function getPageKey(wrapper, img) {
+    if (wrapper?.dataset.papershadeKey) return wrapper.dataset.papershadeKey;
+    if (img?.dataset.papershadeKey) return img.dataset.papershadeKey;
+
     try {
       for (const el of [img, wrapper, wrapper?.parentElement]) {
         if (!el) continue;
@@ -77,13 +89,22 @@
           let curr = el[fiberKey];
           while (curr) {
             if (curr.memoizedProps && typeof curr.memoizedProps.pageIndex === 'number') {
-              return `page_idx_${curr.memoizedProps.pageIndex}`;
+              const k = `page_idx_${curr.memoizedProps.pageIndex}`;
+              if (wrapper) wrapper.dataset.papershadeKey = k;
+              if (img) img.dataset.papershadeKey = k;
+              return k;
             }
             if (curr.pendingProps && typeof curr.pendingProps.pageIndex === 'number') {
-              return `page_idx_${curr.pendingProps.pageIndex}`;
+              const k = `page_idx_${curr.pendingProps.pageIndex}`;
+              if (wrapper) wrapper.dataset.papershadeKey = k;
+              if (img) img.dataset.papershadeKey = k;
+              return k;
             }
             if (curr.key !== null && curr.key !== undefined && String(curr.key).match(/^\d+$/)) {
-              return `page_key_${curr.key}`;
+              const k = `page_key_${curr.key}`;
+              if (wrapper) wrapper.dataset.papershadeKey = k;
+              if (img) img.dataset.papershadeKey = k;
+              return k;
             }
             curr = curr.return;
           }
@@ -95,14 +116,17 @@
     if (scroller && wrapper) {
       const allWrappers = Array.from(scroller.querySelectorAll('div[style*="width"][style*="height"]'));
       const idx = allWrappers.indexOf(wrapper);
-      if (idx !== -1) return `page_idx_${idx}`;
+      if (idx !== -1) {
+        const k = `page_idx_${idx}`;
+        wrapper.dataset.papershadeKey = k;
+        if (img) img.dataset.papershadeKey = k;
+        return k;
+      }
     }
 
-    if (wrapper?.dataset.papershadePageKey) {
-      return wrapper.dataset.papershadePageKey;
-    }
     const key = `page_${Math.random().toString(36).slice(2, 8)}`;
-    if (wrapper) wrapper.dataset.papershadePageKey = key;
+    if (wrapper) wrapper.dataset.papershadeKey = key;
+    if (img) img.dataset.papershadeKey = key;
     return key;
   }
 
@@ -113,115 +137,76 @@
       lastPathname = window.location.pathname;
     }
 
-    requestAnimationFrame(() => {
-      const scroller = document.querySelector('[data-pdf-viewer-theme]');
-      if (scroller) {
+    const scroller = document.querySelector('[data-pdf-viewer-theme]');
+    if (scroller) {
+      if (scroller.style.backgroundColor !== '#000000') {
         scroller.style.setProperty('background-color', '#000000', 'important');
         scroller.style.setProperty('background-image', 'none', 'important');
-        if (scroller.firstElementChild) {
-          scroller.firstElementChild.style.setProperty('background-color', '#000000', 'important');
-          scroller.firstElementChild.style.setProperty('background-image', 'none', 'important');
-        }
+      }
+      if (scroller.firstElementChild && scroller.firstElementChild.style.backgroundColor !== '#000000') {
+        scroller.firstElementChild.style.setProperty('background-color', '#000000', 'important');
+        scroller.firstElementChild.style.setProperty('background-image', 'none', 'important');
+      }
+    }
+
+    const viewerImages = document.querySelectorAll(
+      '[data-pdf-viewer-theme] img, div[style*="width"][style*="height"] > img, [data-pdf-viewer-theme] canvas'
+    );
+
+    viewerImages.forEach((img) => {
+      if (!img.classList.contains('papershade-target-img')) {
+        img.classList.add('papershade-target-img');
       }
 
-      const viewerImages = document.querySelectorAll(
-        '[data-pdf-viewer-theme] img, div[style*="width"][style*="height"] > img, [data-pdf-viewer-theme] canvas'
-      );
+      const wrapper = img.closest('div[style*="width"][style*="height"]') || img.parentElement;
+      if (!wrapper) return;
 
-      viewerImages.forEach((img) => {
-        if (!img.classList.contains('papershade-target-img')) {
-          img.classList.add('papershade-target-img');
+      if (!wrapper.classList.contains('papershade-page-wrapper')) {
+        wrapper.classList.add('papershade-page-wrapper');
+      }
+
+      const pageKey = getPageKey(wrapper, img);
+      const isOriginal = bypassedPageKeys.has(pageKey);
+
+      // Fast toggle without layout recalculations
+      const shouldBypass = currentSettings.enabled && isOriginal;
+      if (img.classList.contains('papershade-bypass-contrast') !== shouldBypass) {
+        img.classList.toggle('papershade-bypass-contrast', shouldBypass);
+        wrapper.classList.toggle('papershade-page-original', shouldBypass);
+      }
+
+      // Cleanup legacy full-button container if present
+      const oldControls = wrapper.querySelector('.papershade-page-controls');
+      if (oldControls) oldControls.remove();
+      const oldFull = wrapper.querySelector('.papershade-full-toggle-btn');
+      if (oldFull) oldFull.remove();
+
+      // Mount or update single per-page button
+      let pageBtn = wrapper.querySelector('.papershade-page-toggle-btn');
+      if (!pageBtn) {
+        pageBtn = document.createElement('button');
+        pageBtn.className = 'papershade-page-toggle-btn';
+        pageBtn.type = 'button';
+        wrapper.appendChild(pageBtn);
+      }
+
+      if (!currentSettings.enabled) {
+        if (pageBtn.style.display !== 'none') {
+          pageBtn.style.display = 'none';
+        }
+      } else {
+        if (pageBtn.style.display !== 'inline-flex') {
+          pageBtn.style.display = 'inline-flex';
         }
 
-        const wrapper = img.closest('div[style*="width"][style*="height"]') || img.parentElement;
-        if (!wrapper) return;
-
-        if (window.getComputedStyle(wrapper).position === 'static') {
-          wrapper.style.position = 'relative';
+        const pageTargetMode = isOriginal ? 'original' : 'dark';
+        if (pageBtn.dataset.btnMode !== pageTargetMode) {
+          pageBtn.dataset.btnMode = pageTargetMode;
+          pageBtn.className = `papershade-page-toggle-btn ${isOriginal ? 'papershade-btn-original' : 'papershade-btn-dark'}`;
+          pageBtn.textContent = isOriginal ? 'Invert' : 'Original';
+          pageBtn.title = isOriginal ? 'Invert this page to Dark Mode' : 'Show original scan for this page';
         }
-
-        const pageKey = getPageKey(wrapper, img);
-        const isOriginal = bypassedPageKeys.has(pageKey);
-
-        // Apply bypass class to image and wrapper if toggled to original
-        if (currentSettings.enabled && isOriginal) {
-          img.classList.add('papershade-bypass-contrast');
-          wrapper.classList.add('papershade-page-original');
-        } else {
-          img.classList.remove('papershade-bypass-contrast');
-          wrapper.classList.remove('papershade-page-original');
-        }
-
-        // Mount or update the page controls container
-        let controls = wrapper.querySelector('.papershade-page-controls');
-        if (!controls) {
-          controls = document.createElement('div');
-          controls.className = 'papershade-page-controls';
-          wrapper.appendChild(controls);
-        }
-
-        let pageBtn = controls.querySelector('.papershade-page-toggle-btn');
-        if (!pageBtn) {
-          pageBtn = document.createElement('button');
-          pageBtn.className = 'papershade-page-toggle-btn';
-          pageBtn.type = 'button';
-          controls.appendChild(pageBtn);
-        }
-
-        let fullBtn = controls.querySelector('.papershade-full-toggle-btn');
-        if (!fullBtn) {
-          fullBtn = document.createElement('button');
-          fullBtn.className = 'papershade-full-toggle-btn';
-          fullBtn.type = 'button';
-          controls.appendChild(fullBtn);
-        }
-
-        if (!currentSettings.enabled) {
-          // Full paper is in original mode
-          if (pageBtn.style.display !== 'none') {
-            pageBtn.style.display = 'none';
-          }
-
-          if (fullBtn.style.display !== 'inline-flex') {
-            fullBtn.style.display = 'inline-flex';
-          }
-          if (fullBtn.dataset.btnMode !== 'full-invert') {
-            fullBtn.dataset.btnMode = 'full-invert';
-            fullBtn.className = 'papershade-full-toggle-btn papershade-btn-original';
-            fullBtn.textContent = 'Invert Full Paper';
-            fullBtn.title = 'Invert entire paper to Dark Mode';
-          }
-        } else {
-          // Full paper is enabled (Dark Mode active)
-          if (pageBtn.style.display !== 'inline-flex') {
-            pageBtn.style.display = 'inline-flex';
-          }
-          if (fullBtn.style.display !== 'inline-flex') {
-            fullBtn.style.display = 'inline-flex';
-          }
-
-          const pageTargetMode = isOriginal ? 'original' : 'dark';
-          // Only mutate DOM if mode changed, preventing click interruption on button center
-          if (pageBtn.dataset.btnMode !== pageTargetMode) {
-            pageBtn.dataset.btnMode = pageTargetMode;
-            pageBtn.className = `papershade-page-toggle-btn ${isOriginal ? 'papershade-btn-original' : 'papershade-btn-dark'}`;
-            pageBtn.textContent = isOriginal ? 'Invert' : 'Original';
-            pageBtn.title = isOriginal ? 'Invert this page to Dark Mode' : 'Show original scan for this page';
-          }
-
-          const fullTargetMode = isOriginal ? 'full-invert' : 'full-revert';
-          const fullLabel = isOriginal ? 'Invert Full Paper' : 'Revert Full Paper';
-          const fullClass = isOriginal ? 'papershade-btn-original' : 'papershade-btn-dark';
-          const fullTitle = isOriginal ? 'Invert entire paper to Dark Mode' : 'Revert entire paper to Original scan';
-
-          if (fullBtn.dataset.btnMode !== fullTargetMode) {
-            fullBtn.dataset.btnMode = fullTargetMode;
-            fullBtn.className = `papershade-full-toggle-btn ${fullClass}`;
-            fullBtn.textContent = fullLabel;
-            fullBtn.title = fullTitle;
-          }
-        }
-      });
+      }
     });
   }
 
@@ -234,13 +219,12 @@
         target = target.parentElement;
       }
       const pageBtn = target?.closest?.('.papershade-page-toggle-btn');
-      const fullBtn = target?.closest?.('.papershade-full-toggle-btn');
 
       if (pageBtn) {
         e.preventDefault();
         e.stopPropagation();
 
-        const wrapper = pageBtn.closest('div[style*="width"][style*="height"]') || pageBtn.parentElement?.parentElement;
+        const wrapper = pageBtn.closest('.papershade-page-wrapper') || pageBtn.closest('div[style*="width"][style*="height"]') || pageBtn.parentElement;
         const img = wrapper?.querySelector('img') || wrapper?.querySelector('.papershade-target-img');
         const pageKey = getPageKey(wrapper, img);
 
@@ -258,13 +242,6 @@
 
         tagPaperImages();
         updateFloatingButtonState();
-        return;
-      }
-
-      if (fullBtn) {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleFullPaper();
         return;
       }
     },
@@ -391,17 +368,33 @@
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
         createFloatingButton();
-        tagPaperImages();
+        scheduleTagPaperImages();
       });
     } else {
       createFloatingButton();
-      tagPaperImages();
+      scheduleTagPaperImages();
     }
 
-    const observer = new MutationObserver(() => {
-      tagPaperImages();
-      if (!floatingBtn && document.body) {
-        createFloatingButton();
+    const observer = new MutationObserver((mutations) => {
+      let shouldProcess = false;
+      for (let i = 0; i < mutations.length; i++) {
+        const target = mutations[i].target;
+        if (target && target.nodeType === Node.ELEMENT_NODE) {
+          if (target.classList.contains('papershade-page-toggle-btn') ||
+              target.classList.contains('papershade-floating-btn') ||
+              target.classList.contains('papershade-toast')) {
+            continue;
+          }
+        }
+        shouldProcess = true;
+        break;
+      }
+
+      if (shouldProcess) {
+        scheduleTagPaperImages();
+        if (!floatingBtn && document.body) {
+          createFloatingButton();
+        }
       }
     });
 

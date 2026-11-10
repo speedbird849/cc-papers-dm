@@ -7,7 +7,7 @@ A sleek, lightweight Chrome Extension (Manifest V3) designed for VIT Vellore stu
 
 ## Features
 
-- **Per-Page & Full Paper Invert/Revert Controls**: Dedicated controls right on every page and a persistent floating quick-toggle let you switch individual pages (`Original` <-> `Invert`) or the entire document (`Revert Full Paper` <-> `Invert Full Paper`) with a single click.
+- **Per-Page Original Toggle & Corner Full Paper Toggle**: Individual pages feature a dedicated toggle button (`Original` <-> `Invert`) in the top-right corner, while the full document invert/revert control sits conveniently in the bottom corner.
 - **Clear Black & White Engine**: Completely eliminates yellowing, warm lamp lighting, scanner edge glows, and chromatic shadows using full saturation neutralization (`grayscale(1)`).
 - **Radiant, Punchy White Text**: Multi-stage luminance boosting makes text strokes pop with pure, bright, high-contrast white so questions and formulas are instantly readable.
 - **Pitch Black Backgrounds & High-Fidelity Stroke Retention**: Post-inversion contrast normalization crushes paper backgrounds and photocopy shadows to true `rgb(0, 0, 0)` black while preserving thin table gridlines, Gantt charts, and faint anti-aliased font strokes without clipping.
