@@ -53,6 +53,16 @@
     root.style.setProperty('--papershade-text-boost', textBoost.toFixed(3));
     root.style.setProperty('--papershade-contrast', contrast.toFixed(3));
 
+    const scroller = document.querySelector('[data-pdf-viewer-theme]');
+    if (scroller) {
+      scroller.style.setProperty('background-color', '#000000', 'important');
+      scroller.style.setProperty('background-image', 'none', 'important');
+      if (scroller.firstElementChild) {
+        scroller.firstElementChild.style.setProperty('background-color', '#000000', 'important');
+        scroller.firstElementChild.style.setProperty('background-image', 'none', 'important');
+      }
+    }
+
     updateFloatingButtonState();
     tagPaperImages();
   }
@@ -104,6 +114,16 @@
     }
 
     requestAnimationFrame(() => {
+      const scroller = document.querySelector('[data-pdf-viewer-theme]');
+      if (scroller) {
+        scroller.style.setProperty('background-color', '#000000', 'important');
+        scroller.style.setProperty('background-image', 'none', 'important');
+        if (scroller.firstElementChild) {
+          scroller.firstElementChild.style.setProperty('background-color', '#000000', 'important');
+          scroller.firstElementChild.style.setProperty('background-image', 'none', 'important');
+        }
+      }
+
       const viewerImages = document.querySelectorAll(
         '[data-pdf-viewer-theme] img, div[style*="width"][style*="height"] > img, [data-pdf-viewer-theme] canvas'
       );
@@ -123,11 +143,13 @@
         const pageKey = getPageKey(wrapper, img);
         const isOriginal = bypassedPageKeys.has(pageKey);
 
-        // Apply bypass class to image if toggled to original
+        // Apply bypass class to image and wrapper if toggled to original
         if (currentSettings.enabled && isOriginal) {
           img.classList.add('papershade-bypass-contrast');
+          wrapper.classList.add('papershade-page-original');
         } else {
           img.classList.remove('papershade-bypass-contrast');
+          wrapper.classList.remove('papershade-page-original');
         }
 
         // Mount or update the page controls container
@@ -225,10 +247,12 @@
         if (bypassedPageKeys.has(pageKey)) {
           bypassedPageKeys.delete(pageKey);
           if (img) img.classList.remove('papershade-bypass-contrast');
+          if (wrapper) wrapper.classList.remove('papershade-page-original');
           showToast('Page Inverted');
         } else {
           bypassedPageKeys.add(pageKey);
           if (img) img.classList.add('papershade-bypass-contrast');
+          if (wrapper) wrapper.classList.add('papershade-page-original');
           showToast('Showing Original Page');
         }
 

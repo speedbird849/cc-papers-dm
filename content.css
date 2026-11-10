@@ -111,9 +111,11 @@ html.papershade-active[data-papershade-mode="sepia-dark"] .papershade-target-img
 html[data-papershade-enabled="true"] img.papershade-bypass-contrast,
 html[data-papershade-enabled="true"] [data-pdf-viewer-theme] img.papershade-bypass-contrast,
 html[data-papershade-enabled="true"] [data-pdf-viewer-theme="light"] img.papershade-bypass-contrast,
+html[data-papershade-enabled="true"] canvas.papershade-bypass-contrast,
 html.papershade-active img.papershade-bypass-contrast,
 html.papershade-active [data-pdf-viewer-theme] img.papershade-bypass-contrast,
-.papershade-target-img.papershade-bypass-contrast {
+.papershade-target-img.papershade-bypass-contrast,
+.papershade-bypass-contrast {
   filter: none !important;
   -webkit-filter: none !important;
   border: none !important;
@@ -122,6 +124,8 @@ html.papershade-active [data-pdf-viewer-theme] img.papershade-bypass-contrast,
   border-radius: 0px !important;
   margin: 0 !important;
   padding: 0 !important;
+  display: block !important;
+  vertical-align: top !important;
   transition: filter 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -131,6 +135,8 @@ html.papershade-active [data-pdf-viewer-theme] img.papershade-bypass-contrast,
 [data-pdf-viewer-theme] canvas,
 [data-pdf-viewer-theme="light"] canvas,
 div[style*="width"][style*="height"] > img,
+div[style*="width"][style*="height"] img,
+div[style*="width"][style*="height"] canvas,
 .papershade-target-img {
   border: none !important;
   outline: none !important;
@@ -138,22 +144,54 @@ div[style*="width"][style*="height"] > img,
   border-radius: 0px !important;
   margin: 0 !important;
   padding: 0 !important;
+  display: block !important;
+  vertical-align: top !important;
 }
 
-[data-pdf-viewer-theme] div[style*="width"][style*="height"] {
+[data-pdf-viewer-theme] div[style*="width"][style*="height"],
+div[style*="width"][style*="height"],
+.papershade-page-original,
+div.papershade-page-original {
   border: none !important;
   outline: none !important;
   box-shadow: none !important;
   border-radius: 0px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  overflow: hidden !important;
 }
 
-/* Eliminate surrounding website glows/gradients: force pure pitch black #000000 */
+/* Eliminate surrounding website glows/gradients: force pure pitch black #000000 regardless of state */
+body,
+[data-pdf-viewer-theme],
+div[data-pdf-viewer-theme="light"],
+div[data-pdf-viewer-theme="inherited"],
+div[data-pdf-viewer-scrollbars],
+main,
+center,
+div.bg-\[\#F3F5FF\],
+div[style*="background-color: rgb(243, 245, 255)"],
+div[style*="background-color: #F3F5FF"],
+div[style*="background-color:#F3F5FF"],
+div[style*="background-color: #f3f5ff"],
+div[style*="background-color:#f3f5ff"],
+div[style*="background-color: rgb(7, 1, 20)"],
+div[style*="background-color: #070114"],
+div[style*="background-color:#070114"],
 html[data-papershade-enabled="true"] body,
 html[data-papershade-enabled="true"] [data-pdf-viewer-theme],
 html[data-papershade-enabled="true"] div[data-pdf-viewer-theme="light"],
 html[data-papershade-enabled="true"] div[data-pdf-viewer-theme="inherited"],
 html[data-papershade-enabled="true"] main,
-html[data-papershade-enabled="true"] center {
+html[data-papershade-enabled="true"] center,
+html[data-papershade-enabled="false"] body,
+html[data-papershade-enabled="false"] [data-pdf-viewer-theme],
+html[data-papershade-enabled="false"] div[data-pdf-viewer-theme="light"],
+html[data-papershade-enabled="false"] div[data-pdf-viewer-theme="inherited"],
+html[data-papershade-enabled="false"] main,
+html[data-papershade-enabled="false"] center {
   background-color: #000000 !important;
   background-image: none !important;
 }
